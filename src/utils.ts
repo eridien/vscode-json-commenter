@@ -1,18 +1,18 @@
-export function invBase4ToNumber(str:String) {
-  const digitMap: { [key: string]: number } = {
-    '\u200B': 0, // Zero Width Space
-    '\u200C': 1, // Zero Width Non-Joiner
-    '\u200D': 2, // Zero Width Joiner
-    '\u2060': 3  // Word Joiner
+export function invBase4ToStr(str:String) {
+  const digitMap: { [key: string]: string } = {
+    '\u200B': '0', // Zero Width Space
+    '\u200C': '1', // Zero Width Non-Joiner
+    '\u200D': '2', // Zero Width Joiner
+    '\u2060': '3'  // Word Joiner
   };
-  let num = 0;
+  let digitsStr = '';
   for (const char of str) {
     const digit = digitMap[char];
     if (digit === undefined)
       throw new Error('Invalid character in zero-width base-4 string');
-    num = num * 4 + digit;
+    digitsStr += digit;
   }
-  return num;
+  return digitsStr;
 }
 
 export function numberToInvBase4(num :number) {
