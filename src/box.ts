@@ -10,18 +10,20 @@ import * as utils from './utils';
   if (!editor) { throw new Error('No active editor found.'); }
   const document = editor.document;
 
+  const delEdit = new vscode.WorkspaceEdit();
+  const fullRange = new vscode.Range(
+    document.positionAt(0),
+    document.positionAt(document.getText().length)
+  );
+  delEdit.delete(document.uri, fullRange);
+  await vscode.workspace.applyEdit(delEdit);
+
   let edit = new vscode.WorkspaceEdit();
 
   const addLineToDocument = (lineNumber: number, text: string) => {
     const position = new vscode.Position(lineNumber, 0);
     edit.insert(document.uri, position, text + '\n');
   };
-
-  const fullRange = new vscode.Range(
-    document.positionAt(0),
-    document.positionAt(document.getText().length)
-  );
-  edit.delete(document.uri, fullRange);
 
   const fileStart    = `{`;
   const fileEnd      = `}`;
