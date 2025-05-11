@@ -1,16 +1,12 @@
-import vscode   from 'vscode';
-import * as box from './box';
-
-let chrPos = 10;
+import vscode     from 'vscode';
+import * as box   from './box';
+import * as parse from './parse';
 
 export async function test() {
   const textEditor = vscode.window.activeTextEditor;
   const document = textEditor?.document;
   if(!document) return;
-  const range    = new vscode.Range(4, ++chrPos, 4, chrPos+1);
-  let edit = new vscode.WorkspaceEdit();
-  edit.replace(document.uri, range, 'x');
-  await vscode.workspace.applyEdit(edit);
+  console.log(parse.parseJsonDocument(document));
 }
 
 export function draw() {

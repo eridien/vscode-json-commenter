@@ -18,3 +18,11 @@ settings ...
   highlight color
   indents, margins, and padding
   "editor.unicodeHighlight.invisibleCharacters": false
+
+Write code that scans json text one char at a time.
+Keep track of the syntax using state variables.
+Build an array of all ranges of white space where a new key value pair could be inserted while keeping the entire Json text valid
+
+instead of looking for ranges of white space look for character postions where a new key/pair could be inserted while keeping the text valid json
+
+in newPos get the Pos from the var pos and write it to the channel and store in in positions array

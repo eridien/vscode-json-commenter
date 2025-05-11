@@ -14,7 +14,9 @@
     "url": "https://github.com/eridien/vscode-json-commenter"
   },
   "publisher": "eridien",
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -49,5 +51,8 @@
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.26.0",
     "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "json-asty": "^1.2.2"
   }
 }
