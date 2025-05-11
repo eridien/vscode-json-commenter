@@ -6,7 +6,7 @@ import * as cmds from './commands';
  * @param {vscode.ExtensionContext} context
  */
 function activate(context: vscode.ExtensionContext) {
-
+  cmds.toggleEditMode();
 	const disposable = vscode.commands.registerCommand(
             'vscode-json-commenter.toggle', () => {
 		cmds.toggleEditMode();

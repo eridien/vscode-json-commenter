@@ -4,22 +4,22 @@
 			"path": "src/box.ts",
 			"bookmarks": [
 				{
-					"line": 12,
+					"line": 19,
 					"column": 66,
 					"label": ""
 				},
 				{
-					"line": 32,
+					"line": 48,
 					"column": 67,
 					"label": ""
 				},
 				{
-					"line": 39,
-					"column": 69,
+					"line": 61,
+					"column": 35,
 					"label": ""
 				},
 				{
-					"line": 91,
+					"line": 75,
 					"column": 45,
 					"label": ""
 				}
