@@ -5,6 +5,8 @@ bugs ...
     test not going to be used
 
 todo ...
+  change back to one applyEdit per box
+    create new needed lines before any drawing
   edit.ts
     watch doc changes and intervene for word wrap
       triggered when change in padding
@@ -13,5 +15,6 @@ todo ...
 
 settings ...
   quote replacement
+  highlight color
   indents, margins, and padding
   "editor.unicodeHighlight.invisibleCharacters": false
