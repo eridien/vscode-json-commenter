@@ -54,21 +54,21 @@ export async function drawBox(args: DrawBoxArgs){
   /**
    * Draw one line of margin, border, or body
    *
-   * @param {number}   lineNum 
-   * @param {string}  [text='JSON Commenter: Click here to start editing.JSON'] 
-   * @param {boolean} [border=false] 
-   * @param {boolean} [lastLine=false] 
+   * @param {number}   lineNum
+   * @param {string}   text
+   * @param {boolean} [border=false]
+   * @param {boolean} [lastLine=false]
    */
   function drawLine(lineNum:number, text:string,
                     border = false, lastLine = false) {
     text = text.replaceAll(/"/g, quoteStr);
     const end = lastLine ? '' : ',';
-    let linestr = `${indentStr}"${utils.numberToInvBase4(lineNum)}':'`;
+    let linestr = `${indentStr}"${utils.numberToInvBase4(lineNum)}":"`;
     if(border) 
       linestr += text.repeat(fullWidth/text.length + 1).slice(0, fullWidth); 
     else 
       linestr += padStr + text.slice(0, width).padEnd(width, ' ') + padStr;
-    linestr += `":""${end}`;
+    linestr += `"${end}`;
     addLineToDocument(lineNum, linestr);
   }
 
@@ -78,7 +78,7 @@ export async function drawBox(args: DrawBoxArgs){
   if(hdrLineStr) drawLine(lineNumber++, hdrLineStr, true);
   for (let i = 0; i < lineCount; i++) 
           drawLine(lineNumber++, 
-             (lineNumber === 4 ? 'JSON Commenter: Click here and start typing.' 
+             (lineNumber === 4 ? 'JSON Commenter: "Click here and start typing."' 
                                : ''+lineNumber),
                    false, !footerLineStr && lineNumber === lineCount+1);
   if(footerLineStr) drawLine(lineNumber++, footerLineStr, true, true);

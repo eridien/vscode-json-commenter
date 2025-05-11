@@ -1,0 +1,7 @@
+
+todo ...
+
+settings ...
+  quote replacement
+  indents, margins, and padding
+  "editor.unicodeHighlight.invisibleCharacters": false
