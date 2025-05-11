@@ -74,7 +74,7 @@ export async function drawBox(args: DrawBoxArgs){
           drawLine(lineNumber++, 
              (lineNumber === 4 ? 'JSON Commenter: "Click here and start typing."' 
                                : ''+lineNumber),
-                   false, !footerLineStr && lineNumber === lineCount+1);
+              false, !footerLineStr && i === lineCount-1);
   if(footerLineStr) drawLine(lineNumber++, footerLineStr, true, true);
   for (let i = 0; i < marginBottom; i++) addLineToDocument(lineNumber++, '');
   addLineToDocument(lineNumber, fileEnd);

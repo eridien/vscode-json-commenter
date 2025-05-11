@@ -12,7 +12,8 @@ export async function test() {
   edit.replace(document.uri, range, 'x');
   await vscode.workspace.applyEdit(edit);
 }
+
 export function draw() {
-	box.drawBox({ startLine: 0, lineCount: 4, 
+	box.drawBox({ startLine: 0, lineCount: 3, 
                 hdrLineStr: '-', footerLineStr: '-' });
 }
