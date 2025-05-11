@@ -1,0 +1,29 @@
+{
+	"files": [
+		{
+			"path": "src/box.ts",
+			"bookmarks": [
+				{
+					"line": 12,
+					"column": 66,
+					"label": ""
+				},
+				{
+					"line": 32,
+					"column": 67,
+					"label": ""
+				},
+				{
+					"line": 39,
+					"column": 69,
+					"label": ""
+				},
+				{
+					"line": 91,
+					"column": 45,
+					"label": ""
+				}
+			]
+		}
+	]
+}

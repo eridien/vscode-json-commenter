@@ -1,3 +1,4 @@
+
 export function invBase4ToStr(str:String) {
   const digitMap: { [key: string]: string } = {
     '\u200B': '0', // Zero Width Space
@@ -26,4 +27,3 @@ export function numberToInvBase4(num :number) {
   }
   return result;
 }
-
