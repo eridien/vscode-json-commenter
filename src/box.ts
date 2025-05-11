@@ -38,7 +38,15 @@ export async function drawBox(args: DrawBoxArgs){
 
   await utils.clrDoc(document);
 
-
+  /**
+   * overwrite a line in the document
+   * adding new lines if needed
+   *
+   * @async
+   * @param {number} lineNumber 
+   * @param {string} text 
+   * @returns {*} 
+   */
   const setLine = async (lineNumber: number, text: string) => {
     const totalLines = document.lineCount;
     if (lineNumber >= totalLines-1) {

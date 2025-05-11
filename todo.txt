@@ -1,8 +1,13 @@
 
 bugs ...
+  test replacing chars skips over some chars
+    edit slower than key repeat speed
+    test not going to be used
 
 todo ...
   edit.ts
+    watch doc changes and intervene for word wrap
+      triggered when change in padding
     overwrite(doc, lineNum, charPos, text);
     background color in edit mode
 
