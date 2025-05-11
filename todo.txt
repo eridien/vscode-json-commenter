@@ -3,7 +3,9 @@ bugs ...
 
 todo ...
   edit.ts
-  
+    overwrite(doc, lineNum, charPos, text);
+    background color in edit mode
+
 settings ...
   quote replacement
   indents, margins, and padding

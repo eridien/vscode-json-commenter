@@ -32,17 +32,27 @@ export async function drawBox(args: DrawBoxArgs){
         indent = 4, marginTop = 1, marginBottom = 1, padding = 2, width = 60,
         hdrLineStr = '', footerLineStr = '' } = args;
 
-  const padStr    = ' '.repeat(padding);
-  const indentStr = ' '.repeat(indent);
-  const fullWidth = width + padding*2;
+  const indentStr     = ' '.repeat(indent);
+  const padStr        = ' '.repeat(padding);
+  const fullWidth     = width + padding*2;
 
   await utils.clrDoc(document);
 
-  let edit = new vscode.WorkspaceEdit();
 
-  const addLineToDocument = (lineNumber: number, text: string) => {
-    const position = new vscode.Position(lineNumber, 0);
-    edit.insert(document.uri, position, text + '\n');
+  const setLine = async (lineNumber: number, text: string) => {
+    const totalLines = document.lineCount;
+    if (lineNumber >= totalLines-1) {
+      const editPadding = new vscode.WorkspaceEdit();
+      for (let i = totalLines; i <= lineNumber+1; i++) {
+        const position = new vscode.Position(i, 0);
+        editPadding.insert(document.uri, position, '\n');
+      }
+      await vscode.workspace.applyEdit(editPadding);
+    }
+    const range = document.lineAt(lineNumber).range;
+    const edit  = new vscode.WorkspaceEdit();
+    edit.replace(document.uri, range, text);
+    await vscode.workspace.applyEdit(edit);
   };
 
   /**
@@ -53,7 +63,7 @@ export async function drawBox(args: DrawBoxArgs){
    * @param {boolean} [border=false]
    * @param {boolean} [lastLine=false]
    */
-  function drawLine(lineNum:number, text:string,
+  async function drawLine(lineNum:number, text:string,
                     border = false, lastLine = false) {
     text = text.replaceAll(/"/g, quoteStr);
     const end = lastLine ? '' : ',';
@@ -63,21 +73,19 @@ export async function drawBox(args: DrawBoxArgs){
     else 
       linestr += padStr + text.slice(0, width).padEnd(width, ' ') + padStr;
     linestr += `"${end}`;
-    addLineToDocument(lineNum, linestr);
+    await setLine(lineNum, linestr);
   }
 
   let lineNumber = startLine;
-  addLineToDocument(lineNumber++, fileStart);
-  for (let i = 0; i < marginTop; i++) addLineToDocument(lineNumber++, '');
-  if(hdrLineStr) drawLine(lineNumber++, hdrLineStr, true);
-  for (let i = 0; i < lineCount; i++) 
-          drawLine(lineNumber++, 
-             (lineNumber === 4 ? 'JSON Commenter: "Click here and start typing."' 
+  await setLine(lineNumber++, fileStart);
+  for (let i = 0; i < marginTop; i++) await setLine(lineNumber++, '');
+  if(hdrLineStr) await drawLine(lineNumber++, hdrLineStr, true);
+  for (let i = 0; i < lineCount; i++)
+          await drawLine(lineNumber++,
+             (lineNumber === 4 ? 'JSON Commenter: "Click here and start typing."'
                                : ''+lineNumber),
               false, !footerLineStr && i === lineCount-1);
-  if(footerLineStr) drawLine(lineNumber++, footerLineStr, true, true);
-  for (let i = 0; i < marginBottom; i++) addLineToDocument(lineNumber++, '');
-  addLineToDocument(lineNumber, fileEnd);
-
-  await vscode.workspace.applyEdit(edit);
+  if(footerLineStr) await drawLine(lineNumber++, footerLineStr, true, true);
+  for (let i = 0; i < marginBottom; i++) await setLine(lineNumber++, '');
+  await setLine(lineNumber, fileEnd);
 };
