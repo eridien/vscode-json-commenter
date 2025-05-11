@@ -36,13 +36,7 @@ export async function drawBox(args: DrawBoxArgs){
   const indentStr = ' '.repeat(indent);
   const fullWidth = width + padding*2;
 
-  const delEdit = new vscode.WorkspaceEdit();
-  const fullRange = new vscode.Range(
-    document.positionAt(0),
-    document.positionAt(document.getText().length)
-  );
-  delEdit.delete(document.uri, fullRange);
-  await vscode.workspace.applyEdit(delEdit);
+  await utils.clrDoc(document);
 
   let edit = new vscode.WorkspaceEdit();
 

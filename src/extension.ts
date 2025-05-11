@@ -6,10 +6,10 @@ import * as cmds from './commands';
  * @param {vscode.ExtensionContext} context
  */
 function activate(context: vscode.ExtensionContext) {
-  cmds.toggleEditMode();
+  cmds.draw();
 	const disposable = vscode.commands.registerCommand(
             'vscode-json-commenter.toggle', () => {
-		cmds.toggleEditMode();
+		cmds.test();
 	});
 
 	context.subscriptions.push(disposable);

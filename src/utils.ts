@@ -1,3 +1,4 @@
+import vscode     from 'vscode';
 
 export function invBase4ToStr(str:String) {
   const digitMap: { [key: string]: string } = {
@@ -26,4 +27,20 @@ export function numberToInvBase4(num :number) {
     num = Math.floor(num / 4);
   }
   return result;
+}
+
+/**
+ * Clear the entire document
+ *
+ * @export
+ * @param {vscode.TextDocument} document 
+ */
+export async function clrDoc(document:vscode.TextDocument) {
+  const fullRange = new vscode.Range(
+    document.positionAt(0),
+    document.positionAt(document.getText().length)
+  );
+  const delEdit = new vscode.WorkspaceEdit();
+  delEdit.delete(document.uri, fullRange);
+  await vscode.workspace.applyEdit(delEdit);
 }
