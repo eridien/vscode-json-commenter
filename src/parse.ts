@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import jsonAsty    from 'json-asty';
+import {jsonAstWalker} from 'json-asty-walker';
 import { getLog }  from './utils';
 const { log, start, end } = getLog('pars');
 
@@ -48,3 +49,18 @@ export function getJsonPoints(jsonText: string): [number, number, string][] {
   return keyLocs;
 }
 
+export function test() {
+  const textEditor = vscode.window.activeTextEditor;
+  const document   = textEditor?.document;
+  if (!document) return;
+  const jsonPoints = getJsonPoints(document.getText());
+  if (jsonPoints[0][0] === -1) {
+    log('info', jsonPoints[0][2]);
+    return;
+  }
+  if (jsonPoints.length === 0) {
+    log('info', 'No object found to place comment in.');
+    return;
+  }
+  log('info', 'JSON points: ', jsonPoints);
+}

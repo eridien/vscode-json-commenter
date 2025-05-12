@@ -11,7 +11,7 @@ export async function test() {
   const jsonPoints = getJsonPoints(document.getText());
 }
 
-export function click() {
+export async function click() {
   const textEditor = vscode.window.activeTextEditor;
   const document   = textEditor?.document;
   if(!document) {
@@ -27,7 +27,7 @@ export function click() {
     log('info', 'No position selected.');
     return;
   }
-  log('Click position: ', clickPos);
+  // log('Click position: ', clickPos);
 
   const text = document.getText();
   const jsonPoints = getJsonPoints(text);
@@ -68,34 +68,13 @@ export function click() {
     }
   }
   if (tgtPoint) {
-    log('Target JSON Position:', tgtPoint);
+    // log('Target JSON Position:', tgtPoint);
+    const indentStr = ' '.repeat(tgtPoint.character);
+    const edit = new vscode.WorkspaceEdit();
+    edit.insert(document.uri, tgtPoint, `\n${indentStr}`);
+    await vscode.workspace.applyEdit(edit);
+    await box.openBox(document, tgtPoint.line + 1);
   } else {
     log('No JSON position found before or after the click position.');
   }
-
-  // log('jsonPoints:', jsonPoints);
-
-	// box.drawBox({ startLine: 0, lineCount: 3, 
-  //               hdrLineStr: '-', footerLineStr: '-' });
-
 }
-/*
-Selection: {
-  "start": {
-    "line": 10,
-    "character": 15
-  },
-  "end": {
-    "line": 10,
-    "character": 15
-  },
-  "active": {
-    "line": 10,
-    "character": 15
-  },
-  "anchor": {
-    "line": 10,
-    "character": 15
-  }
-}
-*/

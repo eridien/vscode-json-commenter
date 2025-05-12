@@ -9,7 +9,7 @@ const fileStart = `{`;
 const fileEnd   = `}`;
 
 export interface DrawBoxArgs {
-  editor?: vscode.TextEditor | null;
+  document: vscode.TextDocument;
   startLine: number; lineCount: number;
   indent?: number; marginTop?: number; marginBottom?: number;
   padding?: number; width?: number;
@@ -22,24 +22,19 @@ export interface DrawBoxArgs {
   * @type {(vscode.TextEditor | null)}
   */
 export async function drawBox(args: DrawBoxArgs){
-  let textEditor: vscode.TextEditor | null = null;
-  if (args.editor) { textEditor = args.editor; }
-  textEditor ??= vscode.window.activeTextEditor ?? null;
-  if (!textEditor) { throw new Error('No active textEditor found.'); }
-  const document = textEditor.document;
-
-  let { startLine, lineCount,
-        indent = 4, marginTop = 1, marginBottom = 1, padding = 2, width = 60,
+  let { document, startLine, lineCount,
+        indent = 4, marginTop = 1, marginBottom = 1, 
+        padding = 2, width = 60,
         hdrLineStr = '', footerLineStr = '' } = args;
 
   const indentStr     = ' '.repeat(indent);
   const padStr        = ' '.repeat(padding);
   const fullWidth     = width + padding*2;
 
-  await utils.clrDoc(document);
+  // await utils.clrDoc(document);
 
   /**
-   * overwrite a line in the document
+   * insert a line in the document
    * adding new lines if needed
    *
    * @async
@@ -57,9 +52,9 @@ export async function drawBox(args: DrawBoxArgs){
       }
       await vscode.workspace.applyEdit(editPadding);
     }
-    const range = document.lineAt(lineNumber).range;
-    const edit  = new vscode.WorkspaceEdit();
-    edit.replace(document.uri, range, text);
+    const position = new vscode.Position(lineNumber, 0);
+    const edit = new vscode.WorkspaceEdit();
+    edit.insert(document.uri, position, text + '\n');
     await vscode.workspace.applyEdit(edit);
   };
 
@@ -71,17 +66,22 @@ export async function drawBox(args: DrawBoxArgs){
    * @param {boolean} [border=false]
    * @param {boolean} [lastLine=false]
    */
-  async function drawLine(lineNum:number, text:string,
+  async function drawLine(lineNum: number, text: string,
                     border = false, lastLine = false) {
     text = text.replaceAll(/"/g, quoteStr);
     const end = lastLine ? '' : ',';
     let linestr = `${indentStr}"${utils.numberToInvBase4(lineNum)}":"`;
-    if(border) 
-      linestr += text.repeat(fullWidth/text.length + 1).slice(0, fullWidth); 
-    else 
+    if (border)
+      linestr += text.repeat(fullWidth / text.length + 1).slice(0, fullWidth);
+    else
       linestr += padStr + text.slice(0, width).padEnd(width, ' ') + padStr;
     linestr += `"${end}`;
-    await setLine(lineNum, linestr);
+
+    // Insert the line instead of replacing it
+    const position = new vscode.Position(lineNum, 0);
+    const edit = new vscode.WorkspaceEdit();
+    edit.insert(document.uri, position, linestr + '\n');
+    await vscode.workspace.applyEdit(edit);
   }
 
   let lineNumber = startLine;
@@ -97,3 +97,10 @@ export async function drawBox(args: DrawBoxArgs){
   for (let i = 0; i < marginBottom; i++) await setLine(lineNumber++, '');
   await setLine(lineNumber, fileEnd);
 };
+
+export async function openBox(
+          document: vscode.TextDocument, startLine: number) {
+	await drawBox({ document, startLine, lineCount: 3, 
+                hdrLineStr: '-', footerLineStr: '-' }
+  );
+}
