@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import * as util from 'util';
-import jsonAsty from 'json-asty';
+import jsonAsty    from 'json-asty';
+import { getLog }  from './utils';
+const { log, start, end } = getLog('pars');
 
 const keyLocs: Array<any> = [];
 const seen = new WeakSet();
@@ -14,7 +15,10 @@ function walkRecursive(obj: object): void {
     const t = (obj as any).T || null;
     const c = (obj as any).C || null;
 
-    if (t === 'member') keyLocs.push(c[0].L);
+    if (t === 'member') {
+      const {L, C, O} = (c[0].L as any);
+      keyLocs.push([L, C, O]);
+    }
 
     // Recursively walk through all properties of the object
     for (const key in obj) {
@@ -32,20 +36,15 @@ function walkRecursive(obj: object): void {
   }
 }
 
-export function parseJsonDocument(document: vscode.TextDocument): void {
-  const jsonText = document.getText();
-  let ast:object;
+export function getJsonPoints(jsonText: string): [number, number, string][] {
+  keyLocs.length = 0;
+  let ast: object;
   try {
     ast = jsonAsty.parse(jsonText);
-  } catch (error) {
-      throw new Error(`Failed to parse JSON: ${error}`);
+  } catch (error: any) {
+    return [[-1, -1, error.message]];
   }
-  // console.log('RAW', ast);
-  // console.log('DUMP:', json_asty_1.default.dump(ast, { colors: true }));
-  // console.log(util.inspect(ast, { depth: null, colors: true }));
-
   walkRecursive(ast);
-
-  console.log('Key Locations:', keyLocs);
+  return keyLocs;
 }
 

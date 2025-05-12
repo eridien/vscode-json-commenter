@@ -14,6 +14,7 @@ todo ...
     background color in edit mode
 
 settings ...
+  use closest point above or below if no match
   quote replacement
   highlight color
   indents, margins, and padding
