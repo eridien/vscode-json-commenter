@@ -1,5 +1,7 @@
-import * as vscode   from 'vscode';
-import jsonAsty      from 'json-asty';
+declare var require: any;
+import vscode      from 'vscode';
+import * as util from 'util';
+const jsonAsty     = require('json-asty');
 import { getLog }    from './utils';
 const { log, start, end } = getLog('pars');
 
@@ -10,31 +12,35 @@ function jsonAstWalk(ast: any): [number, string][]  {
   const points: [number, string][] = [];
   try {
     ast.walk((node: any, depth: number, parent: any, when: string) => {
+
+      console.log(node);
+
       if (when === "downward") {
         if (node.T == "member" ) {
-          points.push([json.length, when + 'member']);
+          console.log([json.length, when + ' member']);
         }
+      
         const prolog = node.get("prolog");
         if (prolog !== undefined) {
           json += prolog;
-          points.push([json.length, when + 'prolog']);
+          points.push([json.length, when + ' prolog']);
         }
         const body = node.get("body");
         if (body !== undefined) {
           json += body;
-          points.push([json.length, when + 'body']);
+          points.push([json.length, when + ' body']);
         } else {
           const value = node.get("value");
           if (value !== undefined) {
             json += JSON.stringify(value);
-            points.push([json.length, when + 'value']);
+            points.push([json.length, when + ' value']);
           }
         }
       } else if (when === "upward") {
         const epilog = node.get("epilog");
         if (epilog !== undefined) {
           json += epilog;
-          points.push([json.length, when + 'epilog']);
+          points.push([json.length, when + ' epilog']);
         }
       }
     }, "both");

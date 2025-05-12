@@ -11,6 +11,6 @@
 		"strict": true,
 		"types": ["vscode", "node", "mocha"]
 	},
-	"include": ["src/**/*", "parse.ts", "notes/json-asty-walk.js"],
+	"include": ["src/**/*", "notes/parse.ts",],
 	"exclude": ["node_modules", "out"]
 }

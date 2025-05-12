@@ -10,8 +10,8 @@ export function test() {
   if(!document) return;
   const points = parse.getPoints(document.getText());
   for(const point of points) {
-    log(document.positionAt(point[0]), point[1]);
-  }
+    // log(document.positionAt(point[0]), point[1]);
+  }z
 }
 
 export async function toggleClick() {
