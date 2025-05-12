@@ -7,10 +7,10 @@
 			"ES2022"
 		],
 		"sourceMap": true,
-		"rootDir": "src", /* Specify the root directory of your source files */
+		"rootDir": "src",   
 		"strict": true,
 		"types": ["vscode", "node", "mocha"]
 	},
-	"include": ["src/**/*"],
+	"include": ["src/**/*", "parse.ts"],
 	"exclude": ["node_modules", "out"]
 }

@@ -9,7 +9,7 @@ function activate(context: vscode.ExtensionContext) {
   cmds.test();
 	const disposable = vscode.commands.registerCommand(
             'vscode-json-commenter.toggle', () => {
-		cmds.test();
+		cmds.draw();
 	});
 
 	context.subscriptions.push(disposable);
