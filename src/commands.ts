@@ -22,14 +22,11 @@ export function click() {
     log('info', 'Not a JSON file.');
     return;
   }
-
-  const activePos = textEditor?.selection?.active;
-  if (!activePos) {
+  const clickPos = textEditor?.selection?.active;
+  if (!clickPos) {
     log('info', 'No position selected.');
     return;
   }
-  const clickPos = new vscode.Position(
-                        activePos.line + 1, activePos.character + 1);
   log('Click position: ', clickPos);
 
   const text = document.getText();
@@ -43,23 +40,37 @@ export function click() {
     return;
   }
 
-  let closestJsonPos: vscode.Position | null = null;
-  let minDistance = Infinity;
+  let tgtPoint: vscode.Position | null = null;
+  let foundAfterClick = false;
 
   for (const jsonPoint of jsonPoints) {
     const [line, char] = jsonPoint;
-    const jsonPos = new vscode.Position(line, char);
-    const distance = Math.abs(clickPos.line - jsonPos.line) * 1000 +
-                     Math.abs(clickPos.character - jsonPos.character);
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestJsonPos = jsonPos;
+    const jsonPos = new vscode.Position(line - 1, char - 1);
+    if(jsonPos.line === clickPos.line &&
+       jsonPos.character === clickPos.character) {
+      tgtPoint = jsonPos;
+      break;
+    }
+    if (!foundAfterClick) {
+      if ( jsonPos.line > clickPos.line ||
+          (jsonPos.line === clickPos.line && 
+           jsonPos.character >= clickPos.character) ) {
+        tgtPoint = jsonPos;
+        foundAfterClick = true;
+        break;
+      }
+    }
+    if ( jsonPos.line < clickPos.line ||
+        (jsonPos.line === clickPos.line && 
+         jsonPos.character <= clickPos.character)
+    ) {
+      tgtPoint = jsonPos;
     }
   }
-  if (closestJsonPos) {
-    log('Closest JSON Position:', closestJsonPos);
+  if (tgtPoint) {
+    log('Target JSON Position:', tgtPoint);
   } else {
-    log('No JSON position found close to the click position.');
+    log('No JSON position found before or after the click position.');
   }
 
   // log('jsonPoints:', jsonPoints);
