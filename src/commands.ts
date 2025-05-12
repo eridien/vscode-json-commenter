@@ -1,17 +1,20 @@
-import vscode          from 'vscode';
-import * as box        from './box';
-import {getJsonPoints} from './parse';
+import vscode      from 'vscode';
+import * as box    from './box';
+import * as parse  from './parse';
 import { getLog }  from './utils';
 const { log, start, end } = getLog('cmds');
 
-export async function test() {
+export function test() {
   const textEditor = vscode.window.activeTextEditor;
   const document = textEditor?.document;
   if(!document) return;
-  const jsonPoints = getJsonPoints(document.getText());
+  const points = parse.getPoints(document.getText());
+  for(const point of points) {
+    log(document.positionAt(point[0]), point[1]);
+  }
 }
 
-export async function click() {
+export async function toggleClick() {
   const textEditor = vscode.window.activeTextEditor;
   const document   = textEditor?.document;
   if(!document) {
@@ -30,9 +33,13 @@ export async function click() {
   // log('Click position: ', clickPos);
 
   const text = document.getText();
-  const jsonPoints = getJsonPoints(text);
+  const jsonPoints = parse.getPoints(text);
   if (jsonPoints[0][0] === -1) {
-    log('info', jsonPoints[0][2]);
+    log('info', jsonPoints[0][1]);
+    return;
+  }
+  if (jsonPoints[0][0] < -1) {
+    log('err', jsonPoints[0][1]);
     return;
   }
   if (jsonPoints.length === 0) {
@@ -44,8 +51,8 @@ export async function click() {
   let foundAfterClick = false;
 
   for (const jsonPoint of jsonPoints) {
-    const [line, char] = jsonPoint;
-    const jsonPos = new vscode.Position(line - 1, char - 1);
+    const [line] = jsonPoint;
+    const jsonPos = new vscode.Position(line - 1, 0);
     if(jsonPos.line === clickPos.line &&
        jsonPos.character === clickPos.character) {
       tgtPoint = jsonPos;
