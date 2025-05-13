@@ -1,67 +1,40 @@
 declare var require: any;
 import vscode      from 'vscode';
-import * as util from 'util';
 const jsonAsty     = require('json-asty');
 import { getLog }    from './utils';
 const { log, start, end } = getLog('pars');
 
-export function getPoints(document: vscode.TextDocument): [number, string][] {
+export function getPoints(document: vscode.TextDocument): 
+                                  [string, number, number, string][] {
 
-  function zeroToOne(num: number): vscode.Position {
+  function zeroToOne(num: number): [number, number] {
     const pos = document.positionAt(num);
-    return new vscode.Position(pos.line+1, pos.character+1);
+    return [pos.line+1, pos.character+1];
   }
+
   let left = true;
-  function jsonAstWalk(ast: any): [number, string][]  {
+  function jsonAstWalk(ast: any): [string, number, number, string][]  {
     if (typeof ast !== "object")
-      return [[-2, "Invalid AST"]];
+      return [['err', 1, 0, "Invalid AST"]];
     let json = "";
-    const points: [number, string][] = [];
+    const points: [string, number, number, string][] = [];
     let lastDepth = 0;
     try {
       ast.walk((node: any, depth: number, parent: any, when: string) => {
-
-        let didDump = false;
-
-        function dump(at:string) {
-          const pos = document.positionAt(json.length);
-          // console.log({pos, L:node.L, when,  
-          //             value: node.get("value"),
-          //             body: node.get("body"),
-          //             plen: node.get("prolog")?.length,
-          //             elen: node.get("epilog")?.length,
-          //             prolog: node.get("prolog"),
-          //             epilog: node.get("epilog"),
-          //             T: node.T,
-          //             depth,
-          //             jlen: json.length,
-          //             at});  
-          didDump = true;
-        }
-
-        // if(node.T === "object") {
-        //   console.log('O', 
-        //               zeroToOne(json.length), 
-        //               node.get("epilog")?.length, 
-        //               node.get("epilog"));
-        //   left = true;
-        // }
-        
         if(depth > lastDepth) left = true;
         if(depth < lastDepth) left = false;
         lastDepth = depth;
 
         if(node.T === "member") {
           if(left) {
+            const [line, character] = zeroToOne(json.length);
+            points.push(['L', line, character, '']);
             left = false;
-            console.log('L', depth, zeroToOne(json.length));
           } 
           else {
+            const [line, character] = zeroToOne(json.length);
+            points.push(['R', line, character, node.get("epilog")]);
             left = true;
-            console.log('R', depth, 
-                        zeroToOne(json.length), 
-                        node.get("epilog")?.length, 
-                        node.get("epilog"));
           }
         }
 
@@ -69,17 +42,14 @@ export function getPoints(document: vscode.TextDocument): [number, string][] {
           const prolog = node.get("prolog");
           if (prolog !== undefined) {
             json += prolog;
-            dump('prolog');
           }
           const body = node.get("body");
           if (body !== undefined) {
             json += body;
-            dump('body');
           } else {
             const value = node.get("value");
             if (value !== undefined) {
               json += JSON.stringify(value);
-            dump('value');
             }
           }
         } else if (when === "upward") {
@@ -88,17 +58,12 @@ export function getPoints(document: vscode.TextDocument): [number, string][] {
             // console.log('B',zeroToOne(json.length));
             json += epilog;
             // console.log('A',zeroToOne(json.length));
-            dump('epilog');
           }
-        }
-        if(!didDump) {
-          dump('nodump');
         }
       }, "both");
     } catch (error: any) {
-      return [[-3, error.message]];
+      return [['err', 2, 0, error.message]];
     }
-    // console.log(json);
     return points;
   }
 
@@ -107,7 +72,7 @@ export function getPoints(document: vscode.TextDocument): [number, string][] {
   try {
     ast = jsonAsty.parse(jsonText);
   } catch (error: any) {
-    return [[-1, error.message]];
+    return [['infoerr', 0, 0, error.message]];
   }
   return jsonAstWalk(ast);
 }

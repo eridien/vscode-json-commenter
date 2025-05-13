@@ -10,7 +10,7 @@ export function test() {
   if(!document) return;
   const points = parse.getPoints(document);
   for(const point of points) {
-    log({point});
+    console.log(point);
   }
 }
 
@@ -34,14 +34,14 @@ export async function toggleClick() {
 
   const text = document.getText();
   const jsonPoints = parse.getPoints(document);
-  if (jsonPoints[0][0] === -1) {
-    log('info', jsonPoints[0][1]);
-    return;
-  }
-  if (jsonPoints[0][0] < -1) {
-    log('err', jsonPoints[0][1]);
-    return;
-  }
+  // if (jsonPoints[0][0] === -1) {
+  //   log('info', jsonPoints[0][1]);
+  //   return;
+  // }
+  // if (jsonPoints[0][0] < -1) {
+  //   log('err', jsonPoints[0][1]);
+  //   return;
+  // }
   if (jsonPoints.length === 0) {
     log('info', 'No object found to place comment in.');
     return;
@@ -52,7 +52,7 @@ export async function toggleClick() {
 
   for (const jsonPoint of jsonPoints) {
     const [line] = jsonPoint;
-    const jsonPos = new vscode.Position(line - 1, 0);
+    const jsonPos = new vscode.Position(+line, 0);
     if(jsonPos.line === clickPos.line &&
        jsonPos.character === clickPos.character) {
       tgtPoint = jsonPos;
