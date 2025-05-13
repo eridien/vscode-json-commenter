@@ -2,19 +2,23 @@ import vscode     from 'vscode';
 import * as utils from './utils';
 import { Point }  from './parse';
 
+const initialMsgLong  = 'JSON Commenter: Click here and start typing.';
+const initialMsgMed   = 'Click here and start typing.';
+const initialMsgShort = 'Click here.';
+
 const settings = {
     indent: 4,
     marginTop: 1,
     marginBottom: 1,
     padding: 2,
-    width: 60,
+    width: 40,
     quoteStr: "'",
     hdrLineStr: '-',
     footerLineStr: '-',
     lineCount: 1,
   };
 
-export async function drawBox(document: vscode.TextDocument, point: Point) { 
+export async function insertBox(document: vscode.TextDocument, point: Point) { 
   const indentStr = ' '.repeat(settings.indent);
   const padStr    = ' '.repeat(settings.padding);
   const fullWidth = settings.width + settings.padding * 2;
@@ -73,10 +77,15 @@ export async function drawBox(document: vscode.TextDocument, point: Point) {
   for (let i = 0; i < settings.marginTop; i++) await setLine(lineNumber++, '');
   if (settings.hdrLineStr) await drawLine(
                                    lineNumber++, settings.hdrLineStr, true);
+  let initMsg = initialMsgLong;
+  if(initMsg.length > settings.width) initMsg = initialMsgMed;
+  if(initMsg.length > settings.width) initMsg = initialMsgShort;
+  if(initMsg.length > settings.width) initMsg = '';
+
   for (let i = 0; i < settings.lineCount; i++)
     await drawLine(
       lineNumber++,
-        i == 0 ? 'JSON Commenter: "Click here and start typing."'
+        i == 0 ? 'JSON Commenter: "Click here and start typing.'
                : '' + lineNumber,
       false,
       !settings.footerLineStr && i === settings.lineCount - 1
@@ -85,8 +94,4 @@ export async function drawBox(document: vscode.TextDocument, point: Point) {
                           lineNumber++, settings.footerLineStr, true, true);
   for (let i = 0; i < settings.marginBottom; i++) 
                               await setLine(lineNumber++, '');
-}
-
-export async function insertBox(document: vscode.TextDocument, point: Point) {
-  await drawBox(document, point);
 }

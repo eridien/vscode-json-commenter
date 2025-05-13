@@ -4,6 +4,10 @@ import * as parse  from './parse';
 import { getLog }  from './utils';
 const { log, start, end } = getLog('cmds');
 
+const settings = {
+  beforeClick: true,
+};
+
 export function test() {
   const textEditor = vscode.window.activeTextEditor;
   const document = textEditor?.document;
@@ -22,7 +26,7 @@ export function toggleClick() {
     return;
   }
   if(document.languageId !== 'json') {
-    log('info', 'Not a JSON file.');
+    log('info', 'Not a json file.');
     return;
   }
   const clickPos = textEditor?.selection?.active;
@@ -41,34 +45,47 @@ export function toggleClick() {
     log(points[0].side, points[0].epilog);
     return;
   }
-  let tgtPoint: parse.Point | null = null;
-  let foundAfterClick = false;
+  let pointBeforeClick: parse.Point | null= null;
+  let pointAfterClick : parse.Point | null= null;
 
   for (const point of points) {
-    if (point.line === clickPos.line &&
-        point.character === clickPos.character) {
-      tgtPoint = point;
+    if (point.line > clickPos.line ||
+        (point.line === clickPos.line &&
+          point.character >= clickPos.character)) {
+      pointAfterClick = point;
       break;
-    }
-    if (!foundAfterClick) {
-      if (point.line > clickPos.line ||
-          (point.line === clickPos.line &&
-           point.character > clickPos.character)) {
-        tgtPoint = point;
-        foundAfterClick = true;
-        break;
-      }
     }
     if (point.line < clickPos.line ||
         (point.line === clickPos.line &&
          point.character <= clickPos.character)) {
-      tgtPoint = point;
+      pointBeforeClick = point;
     }
   }
-  if (tgtPoint) {
-    log('Target JSON Point:', tgtPoint);
-    box.insertBox(document, tgtPoint);
-  } else {
-    log('No JSON point found before or after the click position.');
+  if(settings.beforeClick) {
+    if(pointBeforeClick) {
+      log('json Point before click:', pointBeforeClick, clickPos);
+      box.insertBox(document, pointBeforeClick);
+      return;
+    }
+    else if(pointAfterClick) {
+      log('No json point before click, using after:', 
+                   pointBeforeClick, clickPos);
+      box.insertBox(document, pointAfterClick);
+      return;
+    }
   }
+  else {
+    if(pointAfterClick) {
+        log('Json point after click:', pointAfterClick, clickPos);
+        box.insertBox(document, pointAfterClick);
+        return;
+    }
+    if(pointBeforeClick) {
+      log(' No json point after click, using before:', 
+                    pointBeforeClick, clickPos);
+        box.insertBox(document, pointBeforeClick);
+        return;
+    }
+  }
+  log('err', 'Impossible: No json point before or after the click position.');
 }
