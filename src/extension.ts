@@ -7,11 +7,11 @@ import * as parse from './parse';
  * @param {vscode.ExtensionContext} context
  */
 function activate(context: vscode.ExtensionContext) {
-  // cmds.toggleClick();
-	cmds.test();
+  cmds.toggleClick();
+	// cmds.test();
 	const disposable = vscode.commands.registerCommand(
             'vscode-json-commenter.toggle', () => {
-		// parse.test();
+		cmds.toggleClick();
 	});
 
 	context.subscriptions.push(disposable);

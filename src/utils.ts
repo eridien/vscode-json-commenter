@@ -115,7 +115,8 @@ export function getLog(module: string) {
                  (errMsg !== undefined ? errMsg : '') +
                  par.join(' ');
 
-    const infoLine = (errFlag ? ' error, ' : '') + par.join(' ');
+    const infoLine = par.join(' ')
+                        .replace('parse: ','');
 
     outputChannel.appendLine(line);
     if (errFlag) console.error(line);

@@ -14,7 +14,7 @@ export function test() {
   }
 }
 
-export async function toggleClick() {
+export function toggleClick() {
   const textEditor = vscode.window.activeTextEditor;
   const document   = textEditor?.document;
   if(!document) {
@@ -30,58 +30,45 @@ export async function toggleClick() {
     log('info', 'No position selected.');
     return;
   }
-  // log('Click position: ', clickPos);
+  log('Click position: ', clickPos);
 
-  const text = document.getText();
-  const jsonPoints = parse.getPoints(document);
-  // if (jsonPoints[0][0] === -1) {
-  //   log('info', jsonPoints[0][1]);
-  //   return;
-  // }
-  // if (jsonPoints[0][0] < -1) {
-  //   log('err', jsonPoints[0][1]);
-  //   return;
-  // }
-  if (jsonPoints.length === 0) {
+  const points = parse.getPoints(document);
+  if (points.length === 0) {
     log('info', 'No object found to place comment in.');
     return;
   }
-
-  let tgtPoint: vscode.Position | null = null;
+  if (points[0].line === -1) {
+    log(points[0].side, points[0].epilog);
+    return;
+  }
+  let tgtPoint: parse.Point | null = null;
   let foundAfterClick = false;
 
-  for (const jsonPoint of jsonPoints) {
-    const [line] = jsonPoint;
-    const jsonPos = new vscode.Position(+line, 0);
-    if(jsonPos.line === clickPos.line &&
-       jsonPos.character === clickPos.character) {
-      tgtPoint = jsonPos;
+  for (const point of points) {
+    if (point.line === clickPos.line &&
+        point.character === clickPos.character) {
+      tgtPoint = point;
       break;
     }
     if (!foundAfterClick) {
-      if ( jsonPos.line > clickPos.line ||
-          (jsonPos.line === clickPos.line && 
-           jsonPos.character >= clickPos.character) ) {
-        tgtPoint = jsonPos;
+      if (point.line > clickPos.line ||
+          (point.line === clickPos.line &&
+           point.character > clickPos.character)) {
+        tgtPoint = point;
         foundAfterClick = true;
         break;
       }
     }
-    if ( jsonPos.line < clickPos.line ||
-        (jsonPos.line === clickPos.line && 
-         jsonPos.character <= clickPos.character)
-    ) {
-      tgtPoint = jsonPos;
+    if (point.line < clickPos.line ||
+        (point.line === clickPos.line &&
+         point.character <= clickPos.character)) {
+      tgtPoint = point;
     }
   }
   if (tgtPoint) {
-    // log('Target JSON Position:', tgtPoint);
-    const indentStr = ' '.repeat(tgtPoint.character);
-    const edit = new vscode.WorkspaceEdit();
-    edit.insert(document.uri, tgtPoint, `\n${indentStr}`);
-    await vscode.workspace.applyEdit(edit);
-    await box.openBox(document, tgtPoint.line + 1);
+    log('Target JSON Point:', tgtPoint);
+    box.insertBox(document, tgtPoint);
   } else {
-    log('No JSON position found before or after the click position.');
+    log('No JSON point found before or after the click position.');
   }
 }

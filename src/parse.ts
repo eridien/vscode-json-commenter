@@ -4,20 +4,21 @@ const jsonAsty     = require('json-asty');
 import { getLog }    from './utils';
 const { log, start, end } = getLog('pars');
 
-export function getPoints(document: vscode.TextDocument): 
-                                  [string, number, number, string][] {
+export interface Point {
+  side: string;      
+  line: number;      
+  character: number; 
+  epilog: string; 
+}
 
-  function zeroToOne(num: number): [number, number] {
-    const pos = document.positionAt(num);
-    return [pos.line+1, pos.character+1];
-  }
+export function getPoints(document: vscode.TextDocument): Point[] {
 
   let left = true;
-  function jsonAstWalk(ast: any): [string, number, number, string][]  {
+  function jsonAstWalk(ast: any): Point[]  {
     if (typeof ast !== "object")
-      return [['err', 1, 0, "Invalid AST"]];
+      return [{side: 'err', line: -1, character: 0, epilog: "Invalid AST"}];
     let json = "";
-    const points: [string, number, number, string][] = [];
+    const points: Point[] = [];
     let lastDepth = 0;
     try {
       ast.walk((node: any, depth: number, parent: any, when: string) => {
@@ -26,14 +27,15 @@ export function getPoints(document: vscode.TextDocument):
         lastDepth = depth;
 
         if(node.T === "member") {
+          const pos = document.positionAt(json.length);
           if(left) {
-            const [line, character] = zeroToOne(json.length);
-            points.push(['L', line, character, '']);
+            points.push({side: 'L', line: pos.line, 
+                                    character: pos.character, epilog: ''});
             left = false;
           } 
           else {
-            const [line, character] = zeroToOne(json.length);
-            points.push(['R', line, character, node.get("epilog")]);
+            points.push({side: 'R', line: pos.line, 
+                        character: pos.character, epilog: node.get("epilog")});
             left = true;
           }
         }
@@ -55,14 +57,12 @@ export function getPoints(document: vscode.TextDocument):
         } else if (when === "upward") {
           const epilog = node.get("epilog");
           if (epilog !== undefined) {
-            // console.log('B',zeroToOne(json.length));
             json += epilog;
-            // console.log('A',zeroToOne(json.length));
           }
         }
       }, "both");
     } catch (error: any) {
-      return [['err', 2, 0, error.message]];
+      return [{side: 'err', line: -1, character: 0, epilog: error.message}];
     }
     return points;
   }
@@ -72,7 +72,7 @@ export function getPoints(document: vscode.TextDocument):
   try {
     ast = jsonAsty.parse(jsonText);
   } catch (error: any) {
-    return [['infoerr', 0, 0, error.message]];
+    return [{side: 'infoerr', line: -1, character: 0, epilog: error.message}];
   }
   return jsonAstWalk(ast);
 }
