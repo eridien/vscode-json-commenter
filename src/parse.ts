@@ -29,12 +29,12 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         if(node.T === "member") {
           const pos = document.positionAt(json.length);
           if(left) {
-            points.push({side: 'L', line: pos.line, 
+            points.push({side: 'left', line: pos.line, 
                                     character: pos.character, epilog: ''});
             left = false;
           } 
           else {
-            points.push({side: 'R', line: pos.line, 
+            points.push({side: 'right', line: pos.line, 
                         character: pos.character, epilog: node.get("epilog")});
             left = true;
           }

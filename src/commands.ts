@@ -61,6 +61,7 @@ export function toggleClick() {
       pointBeforeClick = point;
     }
   }
+  
   if(settings.beforeClick) {
     if(pointBeforeClick) {
       log('json Point before click:', pointBeforeClick, clickPos);

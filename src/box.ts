@@ -18,10 +18,17 @@ const settings = {
     lineCount: 1,
   };
 
+
 export async function insertBox(document: vscode.TextDocument, point: Point) { 
+  const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   const indentStr = ' '.repeat(settings.indent);
   const padStr    = ' '.repeat(settings.padding);
   const fullWidth = settings.width + settings.padding * 2;
+
+  let firstLineInsert = true;
+  let firstCharOfs    = point.character;
+  let curLine         = point.line;
+  let addedComma      = false;
 
   /**
    * Insert a line in the document, adding new lines if needed.
@@ -30,22 +37,54 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
    * @param {number} lineNumber
    * @param {string} text
    */
-  const setLine = async (lineNumber: number, text: string) => {
-    const totalLines = document.lineCount;
-    if (lineNumber >= totalLines - 1) {
-      const editPadding = new vscode.WorkspaceEdit();
-      for (let i = totalLines; i <= lineNumber + 1; i++) {
-        const position = new vscode.Position(i, 0);
-        editPadding.insert(document.uri, position, '\n');
+  const insertLine = async (lineNumber: number, text: string) => {
+    let textAfterBox = '';
+    if (firstLineInsert) {
+      firstLineInsert = false;
+      const line = document.lineAt(curLine);
+      textAfterBox = line.text.slice(firstCharOfs);
+      const edit = new vscode.WorkspaceEdit();
+      if (firstCharOfs == 0) {
+        const range = line.range;
+        edit.delete(document.uri, range);
       }
-      await vscode.workspace.applyEdit(editPadding);
+      else {
+        if(point.side == 'right') {
+          let charsBeforeComma = point.epilog.indexOf(',');
+          if(charsBeforeComma == -1) {
+            // no comma found
+            const pos = new vscode.Position(curLine, firstCharOfs);
+            edit.insert(document.uri, pos, ',');
+            firstCharOfs++;
+            addedComma = true;
+          }
+          else {
+            // comma found
+            firstCharOfs += charsBeforeComma + 1;
+            textAfterBox  = textAfterBox.slice(charsBeforeComma + 1);
+          }
+        }
+        const pos = new vscode.Position(curLine, firstCharOfs);
+        edit.insert(document.uri, pos, eol);
+        curLine++;
+      }
+      await vscode.workspace.applyEdit(edit);
     }
-    const position = new vscode.Position(lineNumber, 0);
     const edit = new vscode.WorkspaceEdit();
-    edit.insert(document.uri, position, text + '\n');
-    await vscode.workspace.applyEdit(edit);
+
+    // if (splittingLine) {
+    //   const pos = new vscode.Position(curLine, firstCharOfs);
+    //   edit.insert(document.uri, pos, eol);
+    // }
+    // edit.insert(document.uri, prevPos, eol);
+    //   await vscode.workspace.applyEdit(edit);
+    // }
+    // const position = new vscode.Position(lineNumber, 0);
+    // edit.insert(document.uri, position, text + eol);
+    // await vscode.workspace.applyEdit(edit);
   };
 
+  let firstNewLine = true;
   /**
    * Draw one line of margin, border, or body.
    *
@@ -66,15 +105,20 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
                           .padEnd(settings.width, ' ') + padStr;
     linestr += `"${end}`;
 
-    // Insert the line instead of replacing it
+    if(firstNewLine) {
+      firstNewLine = false;    
+      const prevLine = lineNum;
+
+    }
+
     const position = new vscode.Position(lineNum, 0);
     const edit = new vscode.WorkspaceEdit();
-    edit.insert(document.uri, position, linestr + '\n');
+    edit.insert(document.uri, position, linestr + eol);
     await vscode.workspace.applyEdit(edit);
   }
 
   let lineNumber = point.line;
-  for (let i = 0; i < settings.marginTop; i++) await setLine(lineNumber++, '');
+  for (let i = 0; i < settings.marginTop; i++) await insertLine(lineNumber++, '');
   if (settings.hdrLineStr) await drawLine(
                                    lineNumber++, settings.hdrLineStr, true);
   let initMsg = initialMsgLong;
@@ -93,5 +137,5 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   if (settings.footerLineStr) await drawLine(
                           lineNumber++, settings.footerLineStr, true, true);
   for (let i = 0; i < settings.marginBottom; i++) 
-                              await setLine(lineNumber++, '');
+                              await insertLine(lineNumber++, '');
 }
