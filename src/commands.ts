@@ -8,9 +8,9 @@ export function test() {
   const textEditor = vscode.window.activeTextEditor;
   const document = textEditor?.document;
   if(!document) return;
-  const points = parse.getPoints(document.getText());
+  const points = parse.getPoints(document);
   for(const point of points) {
-    // log(document.positionAt(point[0]), point[1]);
+    log({point});
   }
 }
 
@@ -33,7 +33,7 @@ export async function toggleClick() {
   // log('Click position: ', clickPos);
 
   const text = document.getText();
-  const jsonPoints = parse.getPoints(text);
+  const jsonPoints = parse.getPoints(document);
   if (jsonPoints[0][0] === -1) {
     log('info', jsonPoints[0][1]);
     return;
