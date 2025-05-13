@@ -100,7 +100,7 @@ export async function drawBox(args: DrawBoxArgs){
 
 export async function openBox(
           document: vscode.TextDocument, startLine: number) {
-	await drawBox({ document, startLine, lineCount: 3, 
+	await drawBox({ document, startLine, lineCount: 3,
                 hdrLineStr: '-', footerLineStr: '-' }
   );
 }

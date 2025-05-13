@@ -11,7 +11,7 @@ export function test() {
   const points = parse.getPoints(document.getText());
   for(const point of points) {
     // log(document.positionAt(point[0]), point[1]);
-  }z
+  }
 }
 
 export async function toggleClick() {

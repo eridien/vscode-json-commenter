@@ -13,7 +13,8 @@ function jsonAstWalk(ast: any): [number, string][]  {
   try {
     ast.walk((node: any, depth: number, parent: any, when: string) => {
 
-      console.log(node);
+      console.log(json.length, when + ' member', node.A
+      );
 
       if (when === "downward") {
         if (node.T == "member" ) {
