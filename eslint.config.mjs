@@ -20,15 +20,15 @@ export default [{
         },
     },
     rules: {
-        // "require-await": "error",
-        // "no-return-await": "error",
+        // forces await on async functions
+        "@typescript-eslint/no-floating-promises": "error", 
+
         "@typescript-eslint/require-await": "error",
-        "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/await-thenable": "error",
-        // "@typescript-eslint/naming-convention": ["warn", {
-        //     selector: "import",
-        //     format: ["camelCase", "PascalCase"],
-        // }],
+        "@typescript-eslint/naming-convention": ["warn", {
+            selector: "import",
+            format: ["camelCase", "PascalCase"],
+        }],
         curly: "off",
         eqeqeq: "off",
         "no-throw-literal": "warn",

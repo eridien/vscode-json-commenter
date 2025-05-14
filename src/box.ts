@@ -61,8 +61,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
           curLine++;
         }
         else {
-          let numCharsBeforeComma = point.epilog.indexOf(',');
-          if(numCharsBeforeComma == -1) {
+          if(!point.epilog || point.epilog.indexOf(',') == -1) {
             // no comma found, add one immediately after the point
             edit.insert(document.uri, pointPos, ',' + eol);
             curLine++;
