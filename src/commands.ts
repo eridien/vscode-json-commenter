@@ -18,7 +18,7 @@ export function test() {
   }
 }
 
-export async function toggleClick() {
+export async function openClick() {
   const textEditor = vscode.window.activeTextEditor;
   const document   = textEditor?.document;
   if(!document) {

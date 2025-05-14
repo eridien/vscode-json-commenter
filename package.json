@@ -21,13 +21,13 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-json-commenter.toggle",
-        "title": "Toggle Comment Edit Mode"
+        "command": "vscode-json-commenter.open",
+        "title": "Open Comment Edit Mode"
       }
     ],
     "keybindings": [
       {
-        "command": "vscode-json-commenter.toggle",
+        "command": "vscode-json-commenter.open",
         "key": "ctrl+alt+'",
         "when": "editorTextFocus"
       }

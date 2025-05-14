@@ -1,22 +1,14 @@
 import * as vscode from 'vscode';
-import * as cmds from './commands';
-import * as parse from './parse';
+import * as cmds   from './commands';
 
-/**
- * Activates the extension.
- * @param {vscode.ExtensionContext} context
- */
-async function activate(context: vscode.ExtensionContext) {
-  await cmds.toggleClick();
+export async function activate(context: vscode.ExtensionContext) {
+  await cmds.openClick();
 	// cmds.test();
 	const disposable = vscode.commands.registerCommand(
-            'vscode-json-commenter.toggle', async () => {
-		await cmds.toggleClick();
+            'vscode-json-commenter.open', async () => {
+		await cmds.openClick();
 	});
-
 	context.subscriptions.push(disposable);
 }
 
-function deactivate() {}
-
-export { activate, deactivate };
+export function deactivate() {}
