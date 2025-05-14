@@ -34,7 +34,6 @@ export async function openClick() {
     log('info', 'No position selected.');
     return;
   }
-  // log('Click position: ', clickPos);
 
   const points = parse.getPoints(document);
   if (points.length === 0) {
