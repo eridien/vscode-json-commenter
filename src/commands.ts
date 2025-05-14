@@ -34,7 +34,7 @@ export async function toggleClick() {
     log('info', 'No position selected.');
     return;
   }
-  log('Click position: ', clickPos);
+  // log('Click position: ', clickPos);
 
   const points = parse.getPoints(document);
   if (points.length === 0) {
@@ -64,26 +64,26 @@ export async function toggleClick() {
   
   if(settings.beforeClick) {
     if(pointBeforeClick) {
-      log('json Point before click:', pointBeforeClick, clickPos);
+      // log('json Point before click:', pointBeforeClick, clickPos);
       await box.insertBox(document, pointBeforeClick);
       return;
     }
     else if(pointAfterClick) {
-      log('No json point before click, using after:', 
-                   pointBeforeClick, clickPos);
+      // log('No json point before click, using after:', 
+      //              pointBeforeClick, clickPos);
       await box.insertBox(document, pointAfterClick);
       return;
     }
   }
   else {
     if(pointAfterClick) {
-        log('Json point after click:', pointAfterClick, clickPos);
+        // log('Json point after click:', pointAfterClick, clickPos);
         await box.insertBox(document, pointAfterClick);
         return;
     }
     if(pointBeforeClick) {
-      log(' No json point after click, using before:', 
-                    pointBeforeClick, clickPos);
+      // log(' No json point after click, using before:', 
+      //               pointBeforeClick, clickPos);
       await box.insertBox(document, pointBeforeClick);
       return;
     }
