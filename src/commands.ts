@@ -18,7 +18,7 @@ export function test() {
   }
 }
 
-export function toggleClick() {
+export async function toggleClick() {
   const textEditor = vscode.window.activeTextEditor;
   const document   = textEditor?.document;
   if(!document) {
@@ -65,27 +65,27 @@ export function toggleClick() {
   if(settings.beforeClick) {
     if(pointBeforeClick) {
       log('json Point before click:', pointBeforeClick, clickPos);
-      box.insertBox(document, pointBeforeClick);
+      await box.insertBox(document, pointBeforeClick);
       return;
     }
     else if(pointAfterClick) {
       log('No json point before click, using after:', 
                    pointBeforeClick, clickPos);
-      box.insertBox(document, pointAfterClick);
+      await box.insertBox(document, pointAfterClick);
       return;
     }
   }
   else {
     if(pointAfterClick) {
         log('Json point after click:', pointAfterClick, clickPos);
-        box.insertBox(document, pointAfterClick);
+        await box.insertBox(document, pointAfterClick);
         return;
     }
     if(pointBeforeClick) {
       log(' No json point after click, using before:', 
                     pointBeforeClick, clickPos);
-        box.insertBox(document, pointBeforeClick);
-        return;
+      await box.insertBox(document, pointBeforeClick);
+      return;
     }
   }
   log('err', 'Impossible: No json point before or after the click position.');
