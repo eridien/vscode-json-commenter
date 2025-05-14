@@ -1,0 +1,4 @@
+fix eslint watching
+  for now run npx eslint .
+support empty objects {}
+clicking exact right side goes before
