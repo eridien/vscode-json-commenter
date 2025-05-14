@@ -51,6 +51,20 @@ function timeInSecs(ms: number): string {
   return (ms / 1000).toFixed(2);
 }
 
+export function movePosToEndOfStr(
+                     startPos: vscode.Position, str: string): vscode.Position {
+  const lines = str.split(/\r?\n/);
+  if (lines.length === 1) {
+    // No line feeds, just add to character
+    return new vscode.Position(startPos.line, startPos.character + str.length);
+  } else {
+    // Move down by number of line feeds, character is length of last line
+    const newLine = startPos.line + lines.length - 1;
+    const newChar = lines[lines.length - 1].length;
+    return new vscode.Position(newLine, newChar);
+  }
+}
+
 export function getLog(module: string) {
   const timers: Record<string, number> = {};
 
