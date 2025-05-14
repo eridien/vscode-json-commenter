@@ -22,7 +22,7 @@ const indentStr = ' '.repeat(settings.indent);
 const padStr    = ' '.repeat(settings.padding);
 const fullWidth = settings.width + settings.padding * 2;
 
-export async function insertBox(document: vscode.TextDocument, point: Point) { 
+export function insertBox(document: vscode.TextDocument, point: Point) { 
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   let curLine         = point.line;
   let firstLineInsert = true;
@@ -38,7 +38,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     lastInvNumber = Math.max(num, lastInvNumber);
   }
 
-  async function insertLine(newLineText: string) {
+  function insertLine(newLineText: string) {
     const edit = new vscode.WorkspaceEdit();
     if (firstLineInsert) {
       firstLineInsert = false;
@@ -86,10 +86,10 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     // after adding the line there is always an empty line after at curLine
     const bolPos = new vscode.Position(curLine++, 0);
     edit.insert(document.uri, bolPos, newLineText + eol);
-    await vscode.workspace.applyEdit(edit);
+    vscode.workspace.applyEdit(edit);
   };
 
-  async function drawLine(text: string, isBorder = false, lastLine = false ) {
+  function drawLine(text: string, isBorder = false, lastLine = false ) {
     text = text.replaceAll(/"/g, settings.quoteStr);
     const end = (!lastLine || !addedComma  ? ',' : '') + eol;
     let linestr = `${indentStr}"${utils.numberToInvBase4(++lastInvNumber)}":"`;
@@ -99,24 +99,24 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     }
     else linestr += padStr + text.slice(0, settings.width)
                                  .padEnd(settings.width, ' ') + padStr;
-    await insertLine(linestr + `"${end}`);
+    insertLine(linestr + `"${end}`);
   }
 
-  for (let i = 0; i < settings.marginTop; i++) await insertLine('');
-  if (settings.hdrLineStr) await drawLine(settings.hdrLineStr, true);
+  for (let i = 0; i < settings.marginTop; i++) insertLine('');
+  if (settings.hdrLineStr) drawLine(settings.hdrLineStr, true);
   let initMsg = initialMsgLong;
   if(initMsg.length > settings.width) initMsg = initialMsgMed;
   if(initMsg.length > settings.width) initMsg = initialMsgShort;
   if(initMsg.length > settings.width) initMsg = '';
   for (let i = 0; i < settings.lineCount; i++)
-    await drawLine((i == 0 ? initMsg : ''), false, 
+    drawLine((i == 0 ? initMsg : ''), false, 
                   (!settings.footerLineStr && i === (settings.lineCount - 1)));
   if (settings.footerLineStr) 
-                   await drawLine(settings.footerLineStr, true, true);
-  for (let i = 0; i < settings.marginBottom; i++) await insertLine('');
+                   drawLine(settings.footerLineStr, true, true);
+  for (let i = 0; i < settings.marginBottom; i++) insertLine('');
   if (textAfterBox.trim()) {
     const edit = new vscode.WorkspaceEdit();
     const lineTxt = ' '.repeat(textAfterBoxOfs) + textAfterBox;
-    await insertLine(lineTxt);
+    insertLine(lineTxt);
   }
 }

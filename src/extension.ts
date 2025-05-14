@@ -6,12 +6,12 @@ import * as parse from './parse';
  * Activates the extension.
  * @param {vscode.ExtensionContext} context
  */
-async function activate(context: vscode.ExtensionContext) {
-  await cmds.toggleClick();
+function activate(context: vscode.ExtensionContext) {
+  cmds.toggleClick();
 	// cmds.test();
 	const disposable = vscode.commands.registerCommand(
-            'vscode-json-commenter.toggle', async () => {
-		await cmds.toggleClick();
+            'vscode-json-commenter.toggle', () => {
+		cmds.toggleClick();
 	});
 
 	context.subscriptions.push(disposable);
