@@ -18,16 +18,25 @@ const settings = {
     lineCount: 1,
   };
 
+const indentStr = ' '.repeat(settings.indent);
+const padStr    = ' '.repeat(settings.padding);
+const fullWidth = settings.width + settings.padding * 2;
+
 export async function insertBox(document: vscode.TextDocument, point: Point) { 
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
-  const indentStr = ' '.repeat(settings.indent);
-  const padStr    = ' '.repeat(settings.padding);
-  const fullWidth = settings.width + settings.padding * 2;
-
   let curLine         = point.line;
   let firstLineInsert = true;
   let addedComma      = false;
   let textAfterBox    = '';
+  let textAfterBoxOfs = 0;
+  let lastInvNumber   = -1;
+
+  const docText = document.getText();
+  const matches = [...docText.matchAll(/"([\u200B\u200C\u200D\u2060]+)":/g)];
+  for(const match of matches) {
+    const num = utils.invBase4ToNumber(match[1]);
+    lastInvNumber = Math.max(num, lastInvNumber);
+  }
 
   async function insertLine(newLineText: string) {
     const edit = new vscode.WorkspaceEdit();
@@ -39,11 +48,13 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
       const lineText = line.text;
       if (curChar == 0) {
         textAfterBox = lineText;
+        textAfterBoxOfs = 0;
         edit.delete(document.uri, line.range);
       }
       else {
         if(point.side == 'left') {
           textAfterBox = lineText.slice(curChar);
+          textAfterBoxOfs = curChar;
           const remTextRange = new vscode.Range(
                      pointPos, new vscode.Position(curLine, lineText.length));
           edit.replace(document.uri, remTextRange, eol);
@@ -62,8 +73,9 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
             const endEpilogPos = utils.movePosToEndOfStr(pointPos, point.epilog);
             curLine = endEpilogPos.line;
             curChar = endEpilogPos.character;
-            const lineText = document.lineAt(curLine).text;
-            textAfterBox = lineText.slice(curChar);
+            const lineText  = document.lineAt(curLine).text;
+            textAfterBox    = lineText.slice(curChar);
+            textAfterBoxOfs = curChar;
             const remTextRange = new vscode.Range(
                   endEpilogPos, new vscode.Position(curLine, lineText.length));
             edit.replace(document.uri, remTextRange, eol);
@@ -78,51 +90,34 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     await vscode.workspace.applyEdit(edit);
   };
 
-  let firstNewLine = true;
-
-  async function drawLine( lineNum: number, text: string,
-                           border = false, lastLine = false ) {
+  async function drawLine(text: string, isBorder = false, lastLine = false ) {
     text = text.replaceAll(/"/g, settings.quoteStr);
-    const end = ','; // lastLine ? '' : ',';
-    let linestr = `${indentStr}"${utils.numberToInvBase4(lineNum)}":"`;
-    if (border)
-      linestr += text.repeat(fullWidth / text.length + 1).slice(0, fullWidth);
-    else
-      linestr += padStr + text.slice(0, settings.width)
-                          .padEnd(settings.width, ' ') + padStr;
-    linestr += `"${end}`;
-
-    if(firstNewLine) {
-      firstNewLine = false;    
-      const prevLine = lineNum;
-
+    const end = (!lastLine || !addedComma  ? ',' : '') + eol;
+    let linestr = `${indentStr}"${utils.numberToInvBase4(++lastInvNumber)}":"`;
+    if(isBorder) {
+      text ||= '-';
+      linestr += text.repeat((fullWidth / text.length) + 1).slice(0, fullWidth);
     }
-
-    const position = new vscode.Position(lineNum, 0);
-    const edit = new vscode.WorkspaceEdit();
-    edit.insert(document.uri, position, linestr + eol);
-    await vscode.workspace.applyEdit(edit);
+    else linestr += padStr + text.slice(0, settings.width)
+                                 .padEnd(settings.width, ' ') + padStr;
+    await insertLine(linestr + `"${end}`);
   }
 
-  let lineNumber = point.line;
-  for (let i = 0; i < settings.marginTop; i++) await insertLine(lineNumber++, '');
-  if (settings.hdrLineStr) await drawLine(
-                                   lineNumber++, settings.hdrLineStr, true);
+  for (let i = 0; i < settings.marginTop; i++) await insertLine('');
+  if (settings.hdrLineStr) await drawLine(settings.hdrLineStr, true);
   let initMsg = initialMsgLong;
   if(initMsg.length > settings.width) initMsg = initialMsgMed;
   if(initMsg.length > settings.width) initMsg = initialMsgShort;
   if(initMsg.length > settings.width) initMsg = '';
-
   for (let i = 0; i < settings.lineCount; i++)
-    await drawLine(
-      lineNumber++,
-        i == 0 ? 'JSON Commenter: "Click here and start typing.'
-               : '' + lineNumber,
-      false,
-      !settings.footerLineStr && i === settings.lineCount - 1
-    );
-  if (settings.footerLineStr) await drawLine(
-                          lineNumber++, settings.footerLineStr, true, true);
-  for (let i = 0; i < settings.marginBottom; i++) 
-                              await insertLine(lineNumber++, '');
+    await drawLine((i == 0 ? initMsg : ''), false, 
+                  (!settings.footerLineStr && i === (settings.lineCount - 1)));
+  if (settings.footerLineStr) 
+                   await drawLine(settings.footerLineStr, true, true);
+  for (let i = 0; i < settings.marginBottom; i++) await insertLine('');
+  if (textAfterBox.trim()) {
+    const edit = new vscode.WorkspaceEdit();
+    const lineTxt = ' '.repeat(textAfterBoxOfs) + textAfterBox;
+    await insertLine(lineTxt);
+  }
 }

@@ -1,4 +1,5 @@
 import vscode     from 'vscode';
+const { log, start, end } = getLog('util');
 
 export function invBase4ToStr(str:String) {
   const digitMap: { [key: string]: string } = {
@@ -27,6 +28,25 @@ export function numberToInvBase4(num :number) {
     num = Math.floor(num / 4);
   }
   return result;
+}
+
+export function invBase4ToNumber(str: string) {
+  const digitMap : { [key: string]: number } = {
+    '\u200B': 0,
+    '\u200C': 1,
+    '\u200D': 2,
+    '\u2060': 3 
+  };
+  let num = 0;
+  for (const char of str) {
+    const digit = digitMap[char];
+    if (digit === undefined) {
+      log('err', 'Invalid character in zero-width base-4 string');
+      return 0;
+    }
+    num = num * 4 + digit;
+  }
+  return num;
 }
 
 /**
