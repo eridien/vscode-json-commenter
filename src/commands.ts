@@ -5,7 +5,7 @@ import { getLog }  from './utils';
 const { log, start, end } = getLog('cmds');
 
 const settings = {
-  beforeClick: true,
+  beforeClickPos: true,
 };
 
 export function test() {
@@ -62,7 +62,7 @@ export async function toggleClick() {
     }
   }
   
-  if(settings.beforeClick) {
+  if(settings.beforeClickPos) {
     if(pointBeforeClick) {
       // log('json Point before click:', pointBeforeClick, clickPos);
       await box.insertBox(document, pointBeforeClick);

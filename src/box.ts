@@ -65,7 +65,6 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
         textAfterBoxOfs = curChar;
         const remTextRange = new vscode.Range(
             removePos, new vscode.Position(curLine, lineText.length));    
-        // log('replace rest of line: ', remTextRange);
         edit.replace(docUri, remTextRange, noEol ? '' : eol); // type 2
         if(!noEol) curLine++;
       }
@@ -88,8 +87,8 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
           const remTextRange = new vscode.Range(
                 endEpilogPos, new vscode.Position(curLine, lineText.length));
           // log('replace epilog with eol: ', remTextRange);
-          edit.replace(docUri, remTextRange, eol);
-          curLine++;
+          edit.replace(docUri, remTextRange, '');
+          // curLine++;
         }
       }
     }
@@ -118,7 +117,8 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   }
 
   await prepareForInsertion();
-  for (let i = 0; i < settings.marginTop; i++) await insertLine(eol);
+  let end = (document.getText().trim().length == 0 ? '' : eol);
+  for (let i = 0; i < settings.marginTop; i++) await insertLine(end);
   if (settings.hdrLineStr) await drawLine(settings.hdrLineStr, true);
   let initMsg = initialMsgLong;
   if(initMsg.length > settings.width) initMsg = initialMsgMed;
@@ -133,6 +133,6 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   if (textAfterBox.trim()) {
     const edit = new vscode.WorkspaceEdit();
     const lineTxt = ' '.repeat(textAfterBoxOfs) + textAfterBox;
-    await insertLine(lineTxt);
+    await insertLine(lineTxt + eol);
   }
 }
