@@ -1,1 +1,3 @@
 support empty objects {}
+before mode and clicked after last file char -> comma wrong (after)
+after mode and after last point -> comma wrong (after)
