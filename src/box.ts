@@ -27,7 +27,6 @@ const fullWidth = settings.width + settings.padding * 2;
 export async function insertBox(document: vscode.TextDocument, point: Point) { 
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   let curLine         = point.line;
-  let firstLineInsert = true;
   let addedComma      = false;
   let textAfterBox    = '';
   let textAfterBoxOfs = 0;
@@ -40,56 +39,58 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     lastInvNumber = Math.max(num, lastInvNumber);
   }
 
-  async function insertLine(newLineText: string) {
-    const edit = new vscode.WorkspaceEdit();
-    if (firstLineInsert) {
-      firstLineInsert = false;
-      let curChar    = point.character;
-      const pointPos = new vscode.Position(curLine, curChar);
-      const line     = document.lineAt(curLine);
-      const lineText = line.text;
-      if (curChar == 0) {
-        textAfterBox = lineText;
-        textAfterBoxOfs = 0;
-        log('Deleting line: ', line.range);
-        edit.delete(document.uri, line.range);
+  async function prepareForInsertion() {
+    let curChar    = point.character;
+    const pointPos = new vscode.Position(curLine, curChar);
+    const line     = document.lineAt(curLine);
+    const lineText = line.text;
+    const edit     = new vscode.WorkspaceEdit();
+
+    if (curChar == 0) {
+      textAfterBox = lineText;
+      textAfterBoxOfs = 0;
+      log('Deleting line: ', line.range);
+      edit.delete(document.uri, line.range);
+    }
+    else {
+      if(point.side == 'left') {
+        textAfterBox = lineText.slice(curChar);
+        textAfterBoxOfs = curChar;
+        const remTextRange = new vscode.Range(
+                    pointPos, new vscode.Position(curLine, lineText.length));
+        log('replace rest of line: ', remTextRange);
+        edit.replace(document.uri, remTextRange, '');
+        curLine++;
       }
       else {
-        if(point.side == 'left') {
-          textAfterBox = lineText.slice(curChar);
+        if(!point.epilog || point.epilog.indexOf(',') == -1) {
+          // no comma found, add one immediately after the point
+          log('insert comma + eol: ', pointPos);
+          edit.insert(document.uri, pointPos, ',' + '');
+          curLine++;
+          addedComma = true;
+        }
+        else {
+          // comma found, move the point to after the epilog
+          const endEpilogPos = utils.movePosToEndOfStr(pointPos, point.epilog);
+          curLine = endEpilogPos.line;
+          curChar = endEpilogPos.character;
+          const lineText  = document.lineAt(curLine).text;
+          textAfterBox    = lineText.slice(curChar);
           textAfterBoxOfs = curChar;
           const remTextRange = new vscode.Range(
-                     pointPos, new vscode.Position(curLine, lineText.length));
-          log('replace rest of line: ', remTextRange);
+                endEpilogPos, new vscode.Position(curLine, lineText.length));
+          log('replace epilog with eol: ', remTextRange);
           edit.replace(document.uri, remTextRange, '');
           curLine++;
         }
-        else {
-          if(!point.epilog || point.epilog.indexOf(',') == -1) {
-            // no comma found, add one immediately after the point
-            log('insert comma + eol: ', pointPos);
-            edit.insert(document.uri, pointPos, ',' + '');
-            curLine++;
-            addedComma = true;
-          }
-          else {
-            // comma found, move the point to after the epilog
-            const endEpilogPos = utils.movePosToEndOfStr(pointPos, point.epilog);
-            curLine = endEpilogPos.line;
-            curChar = endEpilogPos.character;
-            const lineText  = document.lineAt(curLine).text;
-            textAfterBox    = lineText.slice(curChar);
-            textAfterBoxOfs = curChar;
-            const remTextRange = new vscode.Range(
-                  endEpilogPos, new vscode.Position(curLine, lineText.length));
-            log('replace epilog with eol: ', remTextRange);
-            edit.replace(document.uri, remTextRange, '');
-            curLine++;
-          }
-        }
       }
     }
-    // after adding the line there is always an empty line after at curLine
+    await vscode.workspace.applyEdit(edit);
+  }
+  
+  async function insertLine(newLineText: string) {
+    const edit = new vscode.WorkspaceEdit();
     const bolPos = new vscode.Position(curLine++, 0);
     log('insert text line: ', bolPos, newLineText);
     edit.insert(document.uri, bolPos, newLineText + '');
@@ -110,6 +111,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     await insertLine(linestr + `"${end}`);
   }
 
+  await prepareForInsertion();
   for (let i = 0; i < settings.marginTop; i++) await insertLine('');
   if (settings.hdrLineStr) await drawLine(settings.hdrLineStr, true);
   let initMsg = initialMsgLong;
