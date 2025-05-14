@@ -100,7 +100,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     const edit   = new vscode.WorkspaceEdit();
     const bolPos = new vscode.Position(curLine++, 0);
     // log('insert text line: ', bolPos, lineText);
-    edit.insert(docUri, bolPos, lineText + eol);
+    edit.insert(docUri, bolPos, lineText);
     await vscode.workspace.applyEdit(edit);
   };
 
