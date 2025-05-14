@@ -1,3 +1,7 @@
 support empty objects {}
-before mode and clicked after last file char -> comma wrong (after)
+before mode and after last file char -> comma wrong (after)
 after mode and after last point -> comma wrong (after)
+after mode and two props on same line, 
+   click between left of each prop -> wrong aftertext offset
+before mode and two props on same line, 
+   click between right of each prop -> wrong aftertext offset
