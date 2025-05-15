@@ -21,17 +21,28 @@ export function getPoints(document: vscode.TextDocument): Point[] {
     const points: Point[] = [];
     let lastDepth = 0;
     try {
+      // points[points.length-1].line > 18
       ast.walk((node: any, depth: number, parent: any, when: string) => {
+        console.log('node', {node, depth, when});
         if(depth > lastDepth) left = true;
         if(depth < lastDepth) left = false;
         lastDepth = depth;
 
-        if(node.T === "object" && Array.isArray(node.C) && 
-                                  node.C.length === 0 && when === 'upward') {
-          log('Empty object found', node, when, json.length);
-          // const pos = document.positionAt(json.length);
-          points.push({side: 'both', line: node.L.L-1, 
-                                  character: node.L.C, epilog: ''});
+        if(node.T === "object" && when === 'upward') {
+          if(Array.isArray(node.C) && node.C.length === 0) {
+            log('Empty object found', node, when, json.length);
+            // const pos = document.positionAt(json.length);
+            points.push({side: 'both', line: node.L.L-1, 
+                           character: node.L.C, epilog:  node.get("epilog")});
+          }
+          else {
+            if(node.A.epilog.indexOf('}') !== -1) {
+              const pos = document.positionAt(json.length);
+              points.push({side: 'left', line: pos.line,
+                        character: pos.character, epilog: node.get("epilog")});
+              left = true;
+            }
+          }
         }
 
         if(node.T === "member") {

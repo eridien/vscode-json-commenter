@@ -68,8 +68,9 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
         if(!noEol) curLine++;
       }
       else { 
-        if(point.side == 'right' && (!point.epilog || 
-                                     point.epilog.indexOf(',') == -1)) {
+        const hasComma = (!point.epilog || 
+                                     point.epilog.indexOf(',') == -1);
+        if(point.side == 'right' && !hasComma) {
           // no comma found, add one immediately after the point
           edit.insert(docUri, pointPos, ',' + eol);
           curLine++;
@@ -80,7 +81,8 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
           const endEpilogPos = utils.movePosToEndOfStr(pointPos, point.epilog);
           curLine = endEpilogPos.line;
           curChar = endEpilogPos.character;
-          if(!/\r?\n/.test(point.epilog)) curLine++;
+          if(point.side != 'both' && 
+             !/\r?\n/.test(point.epilog)) curLine++;
           const lineText = document.lineAt(curLine).text;
           textAfter      = lineText.slice(curChar);
           textAfterOfs   = curChar;
