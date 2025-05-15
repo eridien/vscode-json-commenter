@@ -147,9 +147,9 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
                 (!settings.footerStr && i === (settings.lineCount - 1)));
   if (settings.footerStr) await drawLine(settings.footerStr, true, true);
   const haveTextAfter = (textAfter.trim().length > 0);
-  let mgnBelow = settings.marginBottom - 1;
+  let mgnBelow = settings.marginBottom;
   if(!haveTextAfter) mgnBelow = adjMargin(curLine, mgnBelow, false);
   for (let i = 0; i < mgnBelow; i++) await insertLine(eol);
   if (haveTextAfter)
-         await insertLine(' '.repeat(textAfterOfs) + textAfter + eol);
+         await insertLine(' '.repeat(textAfterOfs) + textAfter);
 }

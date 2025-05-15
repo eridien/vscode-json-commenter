@@ -1,6 +1,5 @@
 bugs ...
   after mode and after last point -> comma wrong (after)
-  before inside obj in projects array -> adds a line below projects
 
 
 works in ...
