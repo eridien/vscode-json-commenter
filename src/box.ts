@@ -50,7 +50,6 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     if (curChar == 0) {
       textAfter = lineText;
       textAfterOfs = 0;
-      // log('Deleting line: ', line.range);
       edit.delete(docUri, line.range);
     }
     else {
@@ -72,7 +71,6 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
         if(point.side == 'right' && (!point.epilog || 
                                      point.epilog.indexOf(',') == -1)) {
           // no comma found, add one immediately after the point
-          // log('insert comma + eol: ', pointPos);
           edit.insert(docUri, pointPos, ',' + eol);
           curLine++;
           addedComma = true;
@@ -102,7 +100,6 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   async function insertLine(lineText: string) {
     const edit   = new vscode.WorkspaceEdit();
     const bolPos = new vscode.Position(curLine++, 0);
-    // log('insert text line: ', bolPos, lineText);
     edit.insert(docUri, bolPos, lineText);
     await vscode.workspace.applyEdit(edit);
   };
