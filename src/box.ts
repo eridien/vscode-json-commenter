@@ -80,6 +80,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
           const endEpilogPos = utils.movePosToEndOfStr(pointPos, point.epilog);
           curLine = endEpilogPos.line;
           curChar = endEpilogPos.character;
+          if(!/\r?\n/.test(point.epilog)) curLine++;
           const lineText = document.lineAt(curLine).text;
           textAfter      = lineText.slice(curChar);
           textAfterOfs   = curChar;
