@@ -111,7 +111,8 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
 
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
     text = text.replaceAll(/"/g, settings.quoteStr);
-    const end = (!lastLine || !addedComma  ? ',' : '') + eol;
+    const end = (!lastLine || 
+                 (point.side != 'both' && !addedComma)  ? ',' : '') + eol;
     let linestr = `${indentStr}"${utils.numberToInvBase4(++lastInvNumber)}":"`;
     if(isBorder) {
       text ||= '-';
