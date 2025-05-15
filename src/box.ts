@@ -53,7 +53,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
       edit.delete(docUri, line.range);
     }
     else {
-      if(point.side == 'left') {
+      if(point.side == 'left' || point.side == 'both') {
         let noEol = false;
         let removePos = pointPos;
         if(lineText.slice(0, curChar).trim().length == 0) {
@@ -81,8 +81,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
           const endEpilogPos = utils.movePosToEndOfStr(pointPos, point.epilog);
           curLine = endEpilogPos.line;
           curChar = endEpilogPos.character;
-          if(point.side != 'both' && 
-             !/\r?\n/.test(point.epilog)) curLine++;
+          // if(!/\r?\n/.test(point.epilog)) curLine++;
           const lineText = document.lineAt(curLine).text;
           textAfter      = lineText.slice(curChar);
           textAfterOfs   = curChar;

@@ -2,5 +2,5 @@ bugs ...
   before mode and after last file char -> comma wrong (after)
   after mode and after last point -> comma wrong (after)
 
-  before in projects: array -> adds a line below
+  before inside obj in projects array -> adds a line below projects
   
