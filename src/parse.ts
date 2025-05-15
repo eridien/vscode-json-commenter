@@ -26,6 +26,14 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         if(depth < lastDepth) left = false;
         lastDepth = depth;
 
+        if(node.T === "object" && Array.isArray(node.C) && 
+                                  node.C.length === 0 && when === 'upward') {
+          log('Empty object found', node, when, json.length);
+          // const pos = document.positionAt(json.length);
+          points.push({side: 'both', line: node.L.L-1, 
+                                  character: node.L.C, epilog: ''});
+        }
+
         if(node.T === "member") {
           const pos = document.positionAt(json.length);
           if(left) {

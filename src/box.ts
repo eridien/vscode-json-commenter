@@ -68,8 +68,9 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
         edit.replace(docUri, remTextRange, noEol ? '' : eol); // type 2
         if(!noEol) curLine++;
       }
-      else {
-        if(!point.epilog || point.epilog.indexOf(',') == -1) {
+      else { 
+        if(point.side == 'right' && (!point.epilog || 
+                                     point.epilog.indexOf(',') == -1)) {
           // no comma found, add one immediately after the point
           // log('insert comma + eol: ', pointPos);
           edit.insert(docUri, pointPos, ',' + eol);
@@ -87,7 +88,12 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
           const remTextRange = new vscode.Range(
                 endEpilogPos, new vscode.Position(curLine, lineText.length));
           // log('replace epilog with eol: ', remTextRange);
-          edit.replace(docUri, remTextRange, '');
+          let end = '';
+          if(point.side == 'both') {
+            end = eol;
+            curLine++;
+          }
+          edit.replace(docUri, remTextRange, end);
           // curLine++;
         }
       }
