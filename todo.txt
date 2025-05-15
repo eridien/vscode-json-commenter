@@ -1,6 +1,14 @@
 bugs ...
-  before mode and after last file char -> comma wrong (after)
   after mode and after last point -> comma wrong (after)
-
   before inside obj in projects array -> adds a line below projects
+
+
+works in ...
+  package.json
+  package-lock.json
+  .vscode/settings.json
+  .vscode/launch.json
+  
+doesn't work in ...
+  bookmarks.json, comments cleared on reboot
   

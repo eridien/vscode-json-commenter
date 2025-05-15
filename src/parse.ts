@@ -1,8 +1,8 @@
 declare var require: any;
 import vscode      from 'vscode';
-const jsonAsty     = require('json-asty');
-import { getLog }    from './utils';
-const { log, start, end } = getLog('pars');
+const jsonAsty   = require('json-asty');
+import * as utils from './utils';
+const { log, start, end } = utils.getLog('pars');
 
 export interface Point {
   side: string;      
@@ -23,22 +23,23 @@ export function getPoints(document: vscode.TextDocument): Point[] {
     try {
       // points[points.length-1].line > 18
       ast.walk((node: any, depth: number, parent: any, when: string) => {
-        console.log('node', {node, depth, when});
+        // console.log('node', {node, depth, when});
         if(depth > lastDepth) left = true;
         if(depth < lastDepth) left = false;
         lastDepth = depth;
 
         if(node.T === "object" && when === 'upward') {
           if(Array.isArray(node.C) && node.C.length === 0) {
-            log('Empty object found', node, when, json.length);
-            // const pos = document.positionAt(json.length);
+            // log('Empty object', node, when, json.length);
             points.push({side: 'both', line: node.L.L-1, 
                            character: node.L.C, epilog:  node.get("epilog")});
           }
           else {
             if(node.A.epilog.indexOf('}') !== -1) {
-              const pos = document.positionAt(json.length);
-              points.push({side: 'left', line: pos.line,
+              // log('upward object with } in epilog', node, when, json.length);
+              let pos = document.positionAt(json.length);
+              pos = utils.movePosToAfterPrevChar(document, pos);
+              points.push({side: 'right', line: pos.line,
                         character: pos.character, epilog: node.get("epilog")});
               left = true;
             }

@@ -25,7 +25,7 @@ export async function openClick() {
     log('info', 'No active textEditor found.');
     return;
   }
-  if(document.languageId !== 'json') {
+  if(document.languageId !== 'json' && document.languageId !== 'jsonc') {
     log('info', 'Not a json file.');
     return;
   }

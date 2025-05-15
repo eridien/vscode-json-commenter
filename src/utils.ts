@@ -71,6 +71,23 @@ function timeInSecs(ms: number): string {
   return (ms / 1000).toFixed(2);
 }
 
+export function movePosToAfterPrevChar(document: vscode.TextDocument,
+                     startPos: vscode.Position): vscode.Position {
+  let lineText = document.lineAt(startPos.line).text;
+  let lineNum  = startPos.line;
+  let charPos  = startPos.character;
+  while(true) {
+    if (charPos === 0) {
+      if (--lineNum < 0) return new vscode.Position(0, 0);
+      lineText = document.lineAt(lineNum).text;
+      charPos = lineText.length;
+    } 
+    charPos--;
+    if (lineText[charPos] !== ' ') break;
+  }
+  return new vscode.Position(lineNum, charPos + 1);
+}
+
 export function movePosToEndOfStr(
                      startPos: vscode.Position, str: string): vscode.Position {
   const lines = str.split(/\r?\n/);
