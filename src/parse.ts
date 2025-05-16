@@ -47,7 +47,8 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         }
 
         if(node.T === "member") {
-          const pos = document.positionAt(json.length);
+          let pos = document.positionAt(json.length);
+          pos = utils.movePosToAfterPrevChar(document, pos);
           if(left) {
             points.push({side: 'left', line: pos.line, 
                                     character: pos.character, epilog: ''});
