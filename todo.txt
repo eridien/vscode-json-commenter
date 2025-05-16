@@ -1,5 +1,6 @@
 bugs ...
-
+  two blocks in a row broken
+  
 works in ...
   package.json
   package-lock.json
@@ -16,5 +17,5 @@ todo ...
     re-use old ids?
   add version -- 2 bits 
     can expand later via sub-field
-    
+
 editor.unicodeHighlight.invisibleCharacters
