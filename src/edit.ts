@@ -22,6 +22,7 @@ interface Block {
   startText:  number;
   endText:    number;
   text:       string;
+  hasComma:   boolean;
   blocklines: Array<BlockLine>;
 }
 
@@ -32,9 +33,6 @@ const invChrRegEx = new RegExp(oneInvChar);
 const lineRegEx   = new RegExp(
   `^( *?)"(${oneInvChar}{${ID_WIDTH}})(${oneInvChar})` +
         `(${oneInvChar})":"(.*?)"(\,?)$`);
-
-// "    \"​​​​​‍​‍\":\"  Click here and start typing.              \","
-// /^( *?)([​‌‍⁠]{6})([​‌‍⁠])([​‌‍⁠])":"(.*?)"(,?)$/
 
 function getBlockLine(document: vscode.TextDocument, lineNumber: number, 
                           line: vscode.TextLine | null) : BlockLine | null {
@@ -86,32 +84,36 @@ function getBlock(document: vscode.TextDocument,
   } while(blkLine);
   const endLine = lineNum-1;
   let text = '';
+  let hasComma = false;
   const firstLine = blocklines[0];
   const textLen   = firstLine.text.length;
   for(let i = 0; i < blocklines.length; i++) {
     const blkLine = blocklines[i];
     if(blkLine.text.length != textLen) return null;
     if(i  < blocklines.length-1 &&  blkLine.lastLine) return null;
-    if(i == blocklines.length-1 && !blkLine.lastLine) return null;
+    if(i == blocklines.length-1) { 
+      if(!blkLine.lastLine) return null;
+      hasComma = blkLine.hasComma;
+    }
     if(!blkLine.border) text += blkLine.text + ' ';
   }
   text = text.trim();
   const startText = firstLine.indentLen + 1 + ID_WIDTH + 5 + firstLine.padLen;
   const endText   = startText + firstLine.text.length;
-  return { startLine, endLine, startText, endText, text, blocklines };
+  return { startLine, endLine, startText, endText, text, hasComma, blocklines };
 }
 
 function startEditing() {
   if (!editingBlock) return;
   // editor.setDecorations(decorationType, [range]);
-  log('info', 'Editing started.');
+  log('Editing started.');
 }
 
 export function stopEditing() {
   if (!editingBlock) return;
   // clear and dispose decorations
   editingBlock = null;
-  log('info', 'Editing ended.');
+  log('Editing ended.');
 }
 
 export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {

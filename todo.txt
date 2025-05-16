@@ -1,5 +1,5 @@
 bugs ...
-  two blocks in a row broken
+  don't create block inside block
   
 works in ...
   package.json
@@ -11,6 +11,11 @@ doesn't work in ...
   bookmarks.json, comments cleared on reboot
 
 todo ...
+  checking block on every click requires lineAt which is slow
+    keep track of blocks
+    get blocks on page load and every edit above last block
+       use bookmark logic 
+       use getText not lineAt
   problem: blocks can have different char positions
     fixed id width  -- 10 bits
     fixed type width -- 4 bits
