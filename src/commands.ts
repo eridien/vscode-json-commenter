@@ -5,7 +5,7 @@ import { getLog }  from './utils';
 const { log, start, end } = getLog('cmds');
 
 const settings = {
-  beforeClickPos: true,
+  beforeClickPos: false,
 };
 
 export function test() {
