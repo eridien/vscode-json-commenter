@@ -26,6 +26,7 @@ const textWidth    = settings.textWidth;
 const fullWidth    = textWidth + paddingWidth * 2;
 const indentStr    = ' '.repeat(indentWidth);
 const padStr       = ' '.repeat(paddingWidth);
+let   padWidthStr  = utils.numberToInvBase4(paddingWidth, 3);
 
 export async function insertBox(document: vscode.TextDocument, point: Point) { 
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
@@ -113,7 +114,8 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
 
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
     text = text.replaceAll(/"/g, settings.quoteStr);
-    let linestr = `${indentStr}"${utils.numberToInvBase4(++lastInvNumber)}":"`;
+    let linestr = `${indentStr}"${
+                      utils.numberToInvBase4(++lastInvNumber)+padWidthStr}":"`;
     let lineCode = '';
     if(firstLine) lineCode += '\u200B';
     if(isBorder)  lineCode += '\u200C';

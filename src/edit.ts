@@ -1,12 +1,22 @@
 import vscode     from 'vscode';
-import { getLog } from './utils';
-const { log, start, end } = getLog('edit');
+import * as utils from './utils';
+const { log, start, end } = utils.getLog('edit');
 
 interface BoxLocation {
   startLine: number;
   endLine:   number;
   startChar: number;
   endChar:   number;
+}
+
+interface BoxLine {
+  indentWidth: number;
+  lineId: string;
+  startChar: number;
+  endChar: number;
+  padWidth: number;
+  text: string;
+  lineType: string;
 }
 
 let editing = false;
@@ -23,18 +33,22 @@ export function stopEditing() {
   log('info', 'Editing ended.');
 }
 
-const lineRegEx = new RegExp(`"([\\u200B\\u200C\\u200D\\u2060]+)":(.*?)` +
+const lineRegEx = new RegExp(`"([\\u200B\\u200C\\u200D\\u2060]+)` +
+                              `([\\u200B\\u200C\\u200D\\u2060]{3})":(.*?)` +
                               `([\\u200B\\u200C\\u200D\\u2060]+)"/g`);
 
-function ChkLine(document: vscode.TextDocument, lineNumber: number): 
-                      [startChar: number, endChar: number, 
-                       lineId: string, text: string, lineType: string] | null {
+function ChkLine(document: vscode.TextDocument, 
+                 lineNumber: number): BoxLine | null {
   const line   = document.lineAt(lineNumber);  if (!line)   return null;
   const groups = lineRegEx.exec(line.text);    if (!groups) return null;
-  const [lineId, text, lineType] = groups.slice(1);
-  const startChar = groups.index + 1 + lineId.length + 2;
-  const endChar   = startChar + text.length + lineType.length + 1;
-  return [startChar, endChar, lineId, text, lineType];
+  const [lineId, padWidthStr, fullText, lineTypeInv] = groups.slice(1);
+  const padWidth    = utils.invBase4ToNumber(padWidthStr);
+  const text        = fullText.slice(padWidth, -padWidth - 1);
+  const indentWidth = groups.index;
+  const startChar   = indentWidth + 1 + lineId.length + padWidthStr.length + 2;
+  const endChar     = startChar + fullText.length + lineTypeInv.length + 1;
+  const lineType    = utils.invBase4ToStr(lineTypeInv);
+  return { indentWidth, lineId, startChar, endChar, padWidth, text, lineType };
 }
 
 function getBlockClicked(document: vscode.TextDocument, 
@@ -42,7 +56,7 @@ function getBlockClicked(document: vscode.TextDocument,
   let lineNumber = clickPos.line;
   const lineData = ChkLine(document, lineNumber);
   if( !lineData) return null;
-  const [startChar, endChar, lineId, text, lineType] = lineData;
+  const { startChar, endChar, text, lineType } = lineData;
   const textLines = [text];
   let firstLineNumber = lineNumber;
   let lastLineNumber  = lineNumber;
@@ -50,21 +64,8 @@ function getBlockClicked(document: vscode.TextDocument,
   do{
     const lineData = ChkLine(document, lineNumber);
   } while(0);
-
-  const start = new vscode.Position(clickPos.line, 0);
-  const end   = new vscode.Position(clickPos.line, line.text.length);
-  
-  // Check if the click position is within the line
-  if (clickPos.isEqual(start) || clickPos.isEqual(end) ||
-      (clickPos.character > start.character && clickPos.character < end.character)) {
-
-    return { StartLine: start.line,      EndLine: end.line, 
-             StartChar: start.character, EndChar: end.character };
-  }
   
   return null;
-
-
 }
 
 export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {

@@ -18,16 +18,21 @@ export function invBase4ToStr(str:String) {
   return digitsStr;
 }
 
-export function numberToInvBase4(num :number) {
+export function numberToInvBase4(num :number, width = 99) {
   const zeroWidthDigits = ['\u200B', '\u200C', '\u200D', '\u2060'];
-  if (num === 0) return zeroWidthDigits[0];
-  let result = '';
-  while (num > 0) {
-    const digit = num % 4;
-    result = zeroWidthDigits[digit] + result;
-    num = Math.floor(num / 4);
+  let digitsStr = '';
+  if (num === 0) digitsStr = zeroWidthDigits[0];
+  else {
+    let result = '';
+    while (num > 0) {
+      const digit = num % 4;
+      result = zeroWidthDigits[digit] + result;
+      num = Math.floor(num / 4);
+    }
+    digitsStr = result;
   }
-  return result;
+  if(width < 99) digitsStr = digitsStr.padStart(width, zeroWidthDigits[0]);
+  return digitsStr;
 }
 
 export function invBase4ToNumber(str: string) {
