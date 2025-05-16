@@ -10,43 +10,56 @@ export function invBase4ToStr(str:String) {
   };
   let digitsStr = '';
   for (const char of str) {
-    const digit = digitMap[char];
-    if (digit === undefined)
-      throw new Error('Invalid character in zero-width base-4 string');
+    let digit = digitMap[char];
+    if (digit === undefined) digit = '?';
     digitsStr += digit;
   }
   return digitsStr;
 }
 
+const zeroWidthChars = ['\u200B', '\u200C', '\u200D', '\u2060'];
+
+export function num2inv(num: number): string {
+  return zeroWidthChars[num] ?? '?';
+}
+
+export function inv2num(char: string): number {
+  const digitMap: { [key: string]: number } = 
+                { '\u200B': 0, '\u200C': 1, '\u200D': 2, '\u2060': 3 };
+  return digitMap[char] ?? 0;
+}
+
 export function numberToInvBase4(num :number, width = 99) {
-  const zeroWidthDigits = ['\u200B', '\u200C', '\u200D', '\u2060'];
   let digitsStr = '';
-  if (num === 0) digitsStr = zeroWidthDigits[0];
+  if (num === 0) digitsStr = zeroWidthChars[0];
   else {
     let result = '';
     while (num > 0) {
       const digit = num % 4;
-      result = zeroWidthDigits[digit] + result;
+      result = zeroWidthChars[digit] + result;
       num = Math.floor(num / 4);
     }
     digitsStr = result;
   }
-  if(width < 99) digitsStr = digitsStr.padStart(width, zeroWidthDigits[0]);
+  if (digitsStr.length > width) {
+    const randomNum = Math.floor(Math.random() * Math.pow(4, width));
+    log('err', `numberToInvBase4 num:${num} ` +
+               `width:${digitsStr.length} too big, max is ${width}, ` +
+               `using random number ${randomNum}`);
+    return numberToInvBase4(randomNum, width);
+  }
+  if(width < 99) digitsStr = digitsStr.padStart(width, zeroWidthChars[0]);
   return digitsStr;
 }
 
 export function invBase4ToNumber(str: string) {
-  const digitMap : { [key: string]: number } = {
-    '\u200B': 0,
-    '\u200C': 1,
-    '\u200D': 2,
-    '\u2060': 3 
-  };
+  const digitMap : { [key: string]: number } = 
+               { '\u200B': 0, '\u200C': 1, '\u200D': 2, '\u2060': 3 };
   let num = 0;
   for (const char of str) {
     const digit = digitMap[char];
     if (digit === undefined) {
-      log('err', 'Invalid character in zero-width base-4 string');
+      log('err', `Invalid character '${char}' in zero-width base-4 string`);
       return 0;
     }
     num = num * 4 + digit;

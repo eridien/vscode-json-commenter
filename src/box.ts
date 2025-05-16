@@ -1,6 +1,7 @@
-import vscode     from 'vscode';
-import * as utils from './utils';
-import { Point }  from './parse';
+import vscode        from 'vscode';
+import * as edit     from './edit';
+import * as utils    from './utils';
+import { Point }     from './parse';
 import { getLog }    from './utils';
 const { log, start, end } = getLog('boxx');
 
@@ -9,24 +10,20 @@ const initialMsgMed   = 'Click here and start typing.';
 const initialMsgShort = 'Click here.';
 
 const settings = {
-    indentWidth:  4,
-    paddingWidth: 2,
-    textWidth:   40,
-    marginTop:    2,
+    indent: 4,
+    marginTop: 2,
     marginBottom: 2,
-    quoteStr:   "'",
-    headerStr:  '-',
-    footerStr:  '-',
-    lineCount:    1,
+    padding: 2,
+    width: 40,
+    quoteStr: "'",
+    headerStr: '-',
+    footerStr: '-',
+    lineCount: 1,
   };
 
-const indentWidth  = settings.indentWidth;
-const paddingWidth = Math.min(63, settings.paddingWidth);
-const textWidth    = settings.textWidth;
-const fullWidth    = textWidth + paddingWidth * 2;
-const indentStr    = ' '.repeat(indentWidth);
-const padStr       = ' '.repeat(paddingWidth);
-let   padWidthStr  = utils.numberToInvBase4(paddingWidth, 3);
+const indentStr = ' '.repeat(settings.indent);
+const padStr    = ' '.repeat(settings.padding);
+const fullWidth = settings.width + settings.padding * 2;
 
 export async function insertBox(document: vscode.TextDocument, point: Point) { 
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
@@ -35,7 +32,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   let addedComma    = false;
   let textAfter     = '';
   let textAfterOfs  = 0;
-  let lastInvNumber = -1;
+  let lastInvNumber = 0;
 
   const docText = document.getText();
   const matches = [...docText.matchAll(/"([\u200B\u200C\u200D\u2060]+)":/g)];
@@ -110,27 +107,21 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     await vscode.workspace.applyEdit(edit);
   };
 
-  let firstLine = true;
-
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
+    const invId = utils.numberToInvBase4(++lastInvNumber, edit.ID_WIDTH) + // id
+                  utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0)) + // type
+                  utils.num2inv(settings.padding);                         // pad width
     text = text.replaceAll(/"/g, settings.quoteStr);
-    let linestr = `${indentStr}"${
-                      utils.numberToInvBase4(++lastInvNumber)+padWidthStr}":"`;
-    let lineCode = '';
-    if(firstLine) lineCode += '\u200B';
-    if(isBorder)  lineCode += '\u200C';
-    else          lineCode += '\u200D';
-    if(lastLine)  lineCode += '\u2060';
+    const end = (!lastLine || 
+                 (point.side != 'both' && !addedComma)  ? ',' : '') + eol;
+    let linestr = `${indentStr}"${invId}":"`;
     if(isBorder) {
       text ||= '-';
       linestr += text.repeat((fullWidth / text.length) + 1).slice(0, fullWidth);
     }
-    else linestr += padStr + text.slice(0, textWidth)
-                                 .padEnd(textWidth, ' ') + padStr;
-    const end = (!lastLine || 
-                 (point.side != 'both' && !addedComma)  ? ',' : '') + eol;
-    await insertLine(linestr + `${lineCode}"${end}`);
-    firstLine = false;
+    else linestr += padStr + 
+         text.slice(0, settings.width).padEnd(settings.width, ' ') + padStr;   
+    await insertLine(linestr + `"${end}`);
   }
 
   function adjMargin(lineNum: number, 
@@ -152,9 +143,9 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   for (let i = 0; i < mgnAbove; i++) await insertLine(eol);
   if (settings.headerStr) await drawLine(settings.headerStr, true);
   let initMsg = initialMsgLong;
-  if(initMsg.length > textWidth) initMsg = initialMsgMed;
-  if(initMsg.length > textWidth) initMsg = initialMsgShort;
-  if(initMsg.length > textWidth) initMsg = '';
+  if(initMsg.length > settings.width) initMsg = initialMsgMed;
+  if(initMsg.length > settings.width) initMsg = initialMsgShort;
+  if(initMsg.length > settings.width) initMsg = '';
   for (let i = 0; i < settings.lineCount; i++)
     await drawLine((i == 0 ? initMsg : ''), false, 
                 (!settings.footerStr && i === (settings.lineCount - 1)));
