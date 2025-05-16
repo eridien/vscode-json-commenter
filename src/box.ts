@@ -9,20 +9,23 @@ const initialMsgMed   = 'Click here and start typing.';
 const initialMsgShort = 'Click here.';
 
 const settings = {
-    indent: 4,
-    marginTop: 2,
+    indentWidth:  4,
+    paddingWidth: 2,
+    textWidth:   40,
+    marginTop:    2,
     marginBottom: 2,
-    padding: 2,
-    width: 40,
-    quoteStr: "'",
-    headerStr: '-',
-    footerStr: '-',
-    lineCount: 1,
+    quoteStr:   "'",
+    headerStr:  '-',
+    footerStr:  '-',
+    lineCount:    1,
   };
 
-const indentStr = ' '.repeat(settings.indent);
-const padStr    = ' '.repeat(settings.padding);
-const fullWidth = settings.width + settings.padding * 2;
+const indentWidth  = settings.indentWidth;
+const paddingWidth = Math.min(63, settings.paddingWidth);
+const textWidth    = settings.textWidth;
+const fullWidth    = textWidth + paddingWidth * 2;
+const indentStr    = ' '.repeat(indentWidth);
+const padStr       = ' '.repeat(paddingWidth);
 
 export async function insertBox(document: vscode.TextDocument, point: Point) { 
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
@@ -106,18 +109,26 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     await vscode.workspace.applyEdit(edit);
   };
 
+  let firstLine = true;
+
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
     text = text.replaceAll(/"/g, settings.quoteStr);
-    const end = (!lastLine || 
-                 (point.side != 'both' && !addedComma)  ? ',' : '') + eol;
     let linestr = `${indentStr}"${utils.numberToInvBase4(++lastInvNumber)}":"`;
+    let lineCode = '';
+    if(firstLine) lineCode += '\u200B';
+    if(isBorder)  lineCode += '\u200C';
+    else          lineCode += '\u200D';
+    if(lastLine)  lineCode += '\u2060';
     if(isBorder) {
       text ||= '-';
       linestr += text.repeat((fullWidth / text.length) + 1).slice(0, fullWidth);
     }
-    else linestr += padStr + text.slice(0, settings.width)
-                                 .padEnd(settings.width, ' ') + padStr;
-    await insertLine(linestr + `"${end}`);
+    else linestr += padStr + text.slice(0, textWidth)
+                                 .padEnd(textWidth, ' ') + padStr;
+    const end = (!lastLine || 
+                 (point.side != 'both' && !addedComma)  ? ',' : '') + eol;
+    await insertLine(linestr + `${lineCode}"${end}`);
+    firstLine = false;
   }
 
   function adjMargin(lineNum: number, 
@@ -139,9 +150,9 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   for (let i = 0; i < mgnAbove; i++) await insertLine(eol);
   if (settings.headerStr) await drawLine(settings.headerStr, true);
   let initMsg = initialMsgLong;
-  if(initMsg.length > settings.width) initMsg = initialMsgMed;
-  if(initMsg.length > settings.width) initMsg = initialMsgShort;
-  if(initMsg.length > settings.width) initMsg = '';
+  if(initMsg.length > textWidth) initMsg = initialMsgMed;
+  if(initMsg.length > textWidth) initMsg = initialMsgShort;
+  if(initMsg.length > textWidth) initMsg = '';
   for (let i = 0; i < settings.lineCount; i++)
     await drawLine((i == 0 ? initMsg : ''), false, 
                 (!settings.footerStr && i === (settings.lineCount - 1)));
