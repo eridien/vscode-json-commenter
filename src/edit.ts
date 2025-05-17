@@ -111,7 +111,7 @@ function getBlock(document: vscode.TextDocument,
   if(!blockLine) return null;
   const blocklines = [blockLine];
   let lineNum = lineNumber;
-  let blkLine: BlockLine | null | undefined;
+  let blkLine: BlockLine | null;
   do{
     const line  = document.lineAt(--lineNum);
     blkLine = getBlockLine(document, lineNum, line);
@@ -134,9 +134,11 @@ function getBlock(document: vscode.TextDocument,
   let   hasComma        = false;
   for(let i = 0; i < blocklines.length; i++) {
     const blkLine = blocklines[i];
-    if(blkLine.text.length != textLen) return null;
-    if(i  < blocklines.length-1 &&  blkLine.lastLine) return null;
-    if(i == blocklines.length-1) { 
+    if(blkLine.text.length != textLen || 
+       blkLine.indentLen != firstLine.indentLen) return null;
+    if(i != blocklines.length-1) {
+      if(blkLine.lastLine) return null;
+    } else {
       if(!blkLine.lastLine) return null;
       hasBottomBorder = blkLine.border;
       hasComma        = blkLine.hasComma;
