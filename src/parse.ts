@@ -1,6 +1,7 @@
 declare var require: any;
-import vscode      from 'vscode';
-const jsonAsty   = require('json-asty');
+import vscode     from 'vscode';
+const jsonAsty  = require('json-asty');
+import * as edt   from './edit';
 import * as utils from './utils';
 const { log, start, end } = utils.getLog('pars');
 
@@ -12,7 +13,13 @@ export interface Point {
 }
 
 export function getPoints(document: vscode.TextDocument): Point[] {
-
+  const jsonText     = document.getText();
+  const jsonLines    = jsonText.split(/\r?\n/);
+  const linesInBlock = [] as number[];
+  jsonLines.forEach((line, lineNum) => {
+    if(edt.invChrRegEx.test(line)) linesInBlock.push(lineNum);
+  });
+  
   let left = true;
   function jsonAstWalk(ast: any): Point[]  {
     if (typeof ast !== "object")
@@ -21,14 +28,14 @@ export function getPoints(document: vscode.TextDocument): Point[] {
     const points: Point[] = [];
     let lastDepth = 0;
     try {
-      // points[points.length-1].line > 18
       ast.walk((node: any, depth: number, parent: any, when: string) => {
         // console.log('node', {node, depth, when});
         if(depth > lastDepth) left = true;
         if(depth < lastDepth) left = false;
         lastDepth = depth;
 
-        if(node.T === "object" && when === 'upward') {
+        if(node.T === "object" && when === 'upward' 
+                               && !linesInBlock.includes(node.L.L)) {
           if(Array.isArray(node.C) && node.C.length === 0) {
             // log('Empty object', node, when, json.length);
             points.push({side: 'both', line: node.L.L-1, 
@@ -49,15 +56,17 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         if(node.T === "member") {
           let pos = document.positionAt(json.length);
           pos = utils.movePosToAfterPrevChar(document, pos);
-          if(left) {
-            points.push({side: 'left', line: pos.line, 
-                                    character: pos.character, epilog: ''});
-            left = false;
-          } 
-          else {
-            points.push({side: 'right', line: pos.line, 
-                        character: pos.character, epilog: node.get("epilog")});
-            left = true;
+          if(!linesInBlock.includes(pos.line)) {
+            if(left) {
+              points.push({side: 'left', line: pos.line, 
+                                      character: pos.character, epilog: ''});
+              left = false;
+            } 
+            else {
+              points.push({side: 'right', line: pos.line, 
+                          character: pos.character, epilog: node.get("epilog")});
+              left = true;
+            }
           }
         }
 
@@ -88,7 +97,6 @@ export function getPoints(document: vscode.TextDocument): Point[] {
     return points;
   }
 
-  const jsonText = document.getText();
   let ast: object;
   try {
     ast = jsonAsty.parse(jsonText);

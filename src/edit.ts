@@ -29,7 +29,7 @@ interface Block {
 let editingBlock: Block | null | undefined = null;
 
 const oneInvChar  = '[\u200B\u200C\u200D\u2060]';
-const invChrRegEx = new RegExp(oneInvChar);
+export const invChrRegEx = new RegExp(oneInvChar);
 const lineRegEx   = new RegExp(
   `^( *?)"(${oneInvChar}{${ID_WIDTH}})(${oneInvChar})` +
         `(${oneInvChar})":"(.*?)"(\,?)$`);

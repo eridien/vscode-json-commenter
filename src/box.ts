@@ -1,5 +1,5 @@
 import vscode        from 'vscode';
-import * as edit     from './edit';
+import * as edt      from './edit';
 import * as utils    from './utils';
 import { Point }     from './parse';
 import { getLog }    from './utils';
@@ -108,7 +108,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   };
 
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
-    const invId = utils.numberToInvBase4(++lastInvNumber, edit.ID_WIDTH) + // id
+    const invId = utils.numberToInvBase4(++lastInvNumber, edt.ID_WIDTH)  + // id
                   utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0)) + // type
                   utils.num2inv(settings.padding);                         // pad width
     text = text.replaceAll(/"/g, settings.quoteStr);
