@@ -31,8 +31,8 @@ let editingBlock: Block | null | undefined = null;
 const oneInvChar  = '[\u200B\u200C\u200D\u2060]';
 export const invChrRegEx = new RegExp(oneInvChar);
 const lineRegEx   = new RegExp(
-  `^( *?)"(${oneInvChar}{${ID_WIDTH}})(${oneInvChar})` +
-        `(${oneInvChar})":"(.*?)"(\,?)$`);
+  `^( *)"(${oneInvChar}{${ID_WIDTH}})(${oneInvChar})` +
+        `(${oneInvChar})":"(.*?)"(\,?)\s*$`);
 
 function getBlockLine(document: vscode.TextDocument, lineNumber: number, 
                           line: vscode.TextLine | null) : BlockLine | null {
@@ -41,7 +41,7 @@ function getBlockLine(document: vscode.TextDocument, lineNumber: number,
   if(!groups) return null;
   const lineType = utils.inv2num(groups[3]);
   const blkLine = {
-    lineLen:    groups[0].length,
+    lineLen:    groups[0].trimEnd().length,
     indentLen:  groups[1].length,
     id:         utils.invBase4ToNumber(groups[2]),
     border:     !!(lineType & 0x2),

@@ -34,19 +34,20 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         if(depth < lastDepth) left = false;
         lastDepth = depth;
 
-        if(node.T === "object" && when === 'upward' 
-                               && !linesInBlock.includes(node.L.L)) {
+        if(node.T === "object" && when === 'upward') {
           if(Array.isArray(node.C) && node.C.length === 0) {
             // log('Empty object', node, when, json.length);
-            points.push({side: 'both', line: node.L.L-1, 
+            if(!linesInBlock.includes(node.L.L))
+              points.push({side: 'both', line: node.L.L-1, 
                            character: node.L.C, epilog:  node.get("epilog")});
           }
           else {
             if(node.A.epilog.indexOf('}') !== -1) {
-              // log('upward object with } in epilog', node, when, json.length);
+              //log('upward object with } in epilog', node, when, json.length);
               let pos = document.positionAt(json.length);
               pos = utils.movePosToAfterPrevChar(document, pos);
-              points.push({side: 'right', line: pos.line,
+              if(!linesInBlock.includes(node.L.L))
+                points.push({side: 'right', line: pos.line,
                         character: pos.character, epilog: node.get("epilog")});
               left = true;
             }
@@ -56,17 +57,17 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         if(node.T === "member") {
           let pos = document.positionAt(json.length);
           pos = utils.movePosToAfterPrevChar(document, pos);
-          if(!linesInBlock.includes(pos.line)) {
-            if(left) {
+          if(left) {
+            if(!linesInBlock.includes(pos.line)) 
               points.push({side: 'left', line: pos.line, 
-                                      character: pos.character, epilog: ''});
-              left = false;
-            } 
-            else {
+                           character: pos.character, epilog: ''});
+            left = false;
+          } 
+          else {
+            if(!linesInBlock.includes(pos.line)) 
               points.push({side: 'right', line: pos.line, 
-                          character: pos.character, epilog: node.get("epilog")});
-              left = true;
-            }
+                character: pos.character, epilog: node.get("epilog")});
+            left = true;
           }
         }
 
