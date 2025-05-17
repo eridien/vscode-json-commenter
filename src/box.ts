@@ -5,7 +5,7 @@ import * as edit      from './edit';
 import * as utils     from './utils';
 const { log, start, end } = utils.getLog('boxx');
 
-const initialMsgLong  = 'JSON Commenter: Click here and start typing.';
+const initialMsgLong  = 'JSON Comment: Click here and start typing.';
 const initialMsgMed   = 'Click here and start typing.';
 const initialMsgShort = 'Click here.';
 
@@ -159,7 +159,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
          await insertLine(' '.repeat(textAfterOfs) + textAfter);
 }
 
-export async function openClick() {
+export async function openCommand() {
   const textEditor = vscode.window.activeTextEditor;
   const document   = textEditor?.document;
   if(!document) {
@@ -228,5 +228,4 @@ export async function openClick() {
       return;
     }
   }
-  log('err', 'Impossible: No json point before or after the click position.');
 }

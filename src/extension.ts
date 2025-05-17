@@ -4,11 +4,11 @@ import * as edit   from './edit';
 
 export async function activate(context: vscode.ExtensionContext) {
 
-  await box.openClick();  // debug only
+  await box.openCommand();  // debug only
 
 	const registerCommand = vscode.commands.registerCommand(
             'vscode-json-commenter.open', async () => {
-		await box.openClick();
+		await box.openCommand();
 	});
 
   const selectionDisposable = vscode.window.onDidChangeTextEditorSelection(event => {

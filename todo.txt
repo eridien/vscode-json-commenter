@@ -1,14 +1,5 @@
 bugs ...
   
-works in ...
-  package.json
-  package-lock.json
-  .vscode/settings.json
-  .vscode/launch.json
-
-doesn't work in ...
-  bookmarks.json, comments cleared on reboot
-
 todo ...
   highlight dark theme
   if click outside of currently editing document stop editing
@@ -24,5 +15,26 @@ todo ...
     re-use old ids?
   add version -- 2 bits 
     can expand later via sub-field
+  set editor.unicodeHighlight.invisibleCharacters
 
-editor.unicodeHighlight.invisibleCharacters
+settings ...
+  indent: 4,
+  marginTop: 2,
+  marginBottom: 2,
+  padding: 2,
+  width: 40,
+  quoteStr: "'",
+  headerStr: '-',
+  footerStr: '-',
+  lineCount: 1,
+  beforeClickPos: false,
+  editing highlight color
+
+works in ...
+  package.json
+  package-lock.json
+  .vscode/settings.json
+  .vscode/launch.json
+
+doesn't work in ...
+  bookmarks.json, comments cleared on reboot

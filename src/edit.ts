@@ -31,13 +31,16 @@ interface BlockLine {
 }
 
 interface Block {
-  startLine:  number;
-  endLine:    number;
-  startText:  number;
-  endText:    number;
-  text:       string;
-  hasComma:   boolean;
-  blocklines: Array<BlockLine>;
+  startLine:       number;
+  endLine:         number;
+  padLen:          number;
+  startText:       number;
+  endText:         number;
+  text:            string;
+  hasTopBorder:    boolean;
+  hasBottomBorder: boolean;
+  hasComma:        boolean;
+  blocklines:      Array<BlockLine>;
 }
 
 let curEditor: vscode.TextEditor | null = null;
@@ -45,10 +48,12 @@ let editingBlock: Block | null | undefined = null;
 
 export function decorateBlock() {
   if (!curEditor || !editingBlock) return;
-  const startLine = editingBlock.startLine;
-  const endLine   = editingBlock.endLine;
-  const startChar = editingBlock.startText;
-  const endChar   = editingBlock.endText;
+  const startLine = editingBlock.startLine + 
+                   (editingBlock.hasTopBorder    ? +1 : 0);
+  const endLine   = editingBlock.endLine   + 
+                   (editingBlock.hasBottomBorder ? -1 : 0);
+  const startChar = editingBlock.startText - editingBlock.padLen;
+  const endChar   = editingBlock.endText   + editingBlock.padLen;
   const ranges: vscode.Range[] = [];
   for (let lineIdx = startLine; lineIdx <= endLine; lineIdx++) 
       ranges.push(new vscode.Range(lineIdx, startChar, lineIdx, endChar));
@@ -122,40 +127,28 @@ function getBlock(document: vscode.TextDocument,
   } while(blkLine);
   const endLine = lineNum-1;
   let text = '';
-  let hasComma = false;
-  const firstLine = blocklines[0];
-  const textLen   = firstLine.text.length;
+  const firstLine       = blocklines[0];
+  const padLen          = firstLine.padLen;
+  const textLen         = firstLine.text.length;
+  const hasTopBorder    = firstLine.border;
+  let   hasBottomBorder = false;
+  let   hasComma        = false;
   for(let i = 0; i < blocklines.length; i++) {
     const blkLine = blocklines[i];
     if(blkLine.text.length != textLen) return null;
     if(i  < blocklines.length-1 &&  blkLine.lastLine) return null;
     if(i == blocklines.length-1) { 
       if(!blkLine.lastLine) return null;
-      hasComma = blkLine.hasComma;
+      hasBottomBorder = blkLine.border;
+      hasComma        = blkLine.hasComma;
     }
     if(!blkLine.border) text += blkLine.text + ' ';
   }
   text = text.trim();
-  const startText = firstLine.indentLen + 1 + ID_WIDTH + 5 + firstLine.padLen;
+  const startText = firstLine.indentLen + 1 + ID_WIDTH + 5 + padLen;
   const endText   = startText + firstLine.text.length;
-  return { startLine, endLine, startText, endText, text, hasComma, blocklines };
-}
-
-export function stopEditing() {
-  if (!editingBlock) return;
-  clrDecoration();
-  curEditor    = null;
-  editingBlock = null;
-  log('Editing ended.');
-}
-
-export function chgVisibleEditors(editors: readonly vscode.TextEditor[]) {
-  if (!editingBlock) return;
-  let editorIsVisible = false;
-  editors.forEach(editor => {
-    if(editor.document.uri === curEditor?.document.uri) editorIsVisible = true;
-  });
-  if(!editorIsVisible) stopEditing();
+  return { startLine, endLine, padLen, startText, endText, text, 
+           hasTopBorder, hasBottomBorder, hasComma, blocklines };
 }
 
 export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
@@ -176,6 +169,23 @@ export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
     decorateBlock();
     log('Editing started.');
   }
+}
+
+export function stopEditing() {
+  if (!editingBlock) return;
+  clrDecoration();
+  curEditor    = null;
+  editingBlock = null;
+  log('Editing ended.');
+}
+
+export function chgVisibleEditors(editors: readonly vscode.TextEditor[]) {
+  if (!editingBlock) return;
+  let editorIsVisible = false;
+  editors.forEach(editor => {
+    if(editor.document.uri === curEditor?.document.uri) editorIsVisible = true;
+  });
+  if(!editorIsVisible) stopEditing();
 }
 
 export function textEdited(event: vscode.TextDocumentChangeEvent) {
