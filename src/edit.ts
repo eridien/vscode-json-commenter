@@ -104,10 +104,9 @@ function getBlockLine(document: vscode.TextDocument, lineNumber: number,
 }
 
 function getBlock(document: vscode.TextDocument, 
-                  clickPos: vscode.Position): Block | undefined | null {
+                  clickPos: vscode.Position,
+                  line: vscode.TextLine): Block | null {
   let lineNumber = clickPos.line;
-  const line     = document.lineAt(lineNumber);
-  if(!line || !invChrRegEx.test(line.text)) return undefined;
   const blockLine = getBlockLine(document, lineNumber, line);
   if(!blockLine) return null;
   const blocklines = [blockLine];
@@ -154,13 +153,16 @@ function getBlock(document: vscode.TextDocument,
 export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
   if(curEditor && editor !== curEditor) { stopEditing(); return; }
-  if(editingBlock) return;
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
     const clickPos = selections[0].active;
     if (!clickPos) return;
-    editingBlock = getBlock(editor.document, clickPos);
-    if(editingBlock === undefined) return;
+    const line = editor.document.lineAt(clickPos.line);
+    if(!line || !invChrRegEx.test(line.text)) {
+      stopEditing();
+      return;
+    }
+    editingBlock = getBlock(editor.document, clickPos, line);
     if(editingBlock === null) {
       log('infoerr', 'Comment is corrupted. Create a new comment.');
       return;
@@ -189,7 +191,21 @@ export function chgVisibleEditors(editors: readonly vscode.TextEditor[]) {
 }
 
 export function textEdited(event: vscode.TextDocumentChangeEvent) {
-  if (!editingBlock) return;
-  if(event.document.uri !== curEditor?.document.uri) stopEditing(); 
+  const { document, contentChanges } = event;
+  if (contentChanges.length === 0) return;
+  if (curEditor && document !== curEditor.document) { 
+    stopEditing(); 
+    return; 
+  }
+  if (editingBlock) {
+    for (const change of contentChanges) {
+      const { range, rangeLength, text } = change;
+      if (rangeLength === 0 && text.length === 0) continue;
+      if(range.start.line < editingBlock.startLine ||
+         range.end.line   > editingBlock.endLine) {
+        stopEditing();
+        return;
+      }
+    }
+  }
 }
-
