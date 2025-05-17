@@ -5,7 +5,9 @@ import * as edit      from './edit';
 import * as utils     from './utils';
 const { log, start, end } = utils.getLog('boxx');
 
-const initialMsgLong  = 'JSON Comment: Click here and start typing.';
+const DBG_IDSTR = false; 
+
+const initialMsgLong  = 'JSON Commenter: Click here and start typing.';
 const initialMsgMed   = 'Click here and start typing.';
 const initialMsgShort = 'Click here.';
 
@@ -109,13 +111,18 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   };
 
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
-    const invId = utils.numberToInvBase4(++lastInvNumber, edit.ID_WIDTH)  + // id
-                  utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0)) + // type
-                  utils.num2inv(settings.padding);                         // pad width
+    let idStr      = utils.numberToInvBase4(++lastInvNumber, edit.ID_WIDTH);
+    let typeStr    = utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0))
+    let paddingStr = utils.num2inv(settings.padding);
+    if(DBG_IDSTR) {
+      idStr      = utils.invBase4ToVisStr(idStr);
+      typeStr    = utils.invBase4ToVisStr(typeStr);
+      paddingStr = utils.invBase4ToVisStr(paddingStr);
+    }
     text = text.replaceAll(/"/g, settings.quoteStr);
-    const end = (!lastLine || 
+    const end = (!lastLine ||
                  (point.side != 'both' && !addedComma)  ? ',' : '') + eol;
-    let linestr = `${indentStr}"${invId}":"`;
+    let linestr = `${indentStr}"${idStr + typeStr + paddingStr}":"`;
     if(isBorder) {
       text ||= '-';
       linestr += text.repeat((fullWidth / text.length) + 1).slice(0, fullWidth);
@@ -147,9 +154,9 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   if(initMsg.length > settings.width) initMsg = initialMsgMed;
   if(initMsg.length > settings.width) initMsg = initialMsgShort;
   if(initMsg.length > settings.width) initMsg = '';
-  for (let i = 0; i < settings.lineCount; i++)
+  for (let i = 0; i < settings.minLineCount; i++)
     await drawLine((i == 0 ? initMsg : ''), false, 
-                (!settings.footerStr && i === (settings.lineCount - 1)));
+                (!settings.footerStr && i === (settings.minLineCount - 1)));
   if (settings.footerStr) await drawLine(settings.footerStr, true, true);
   const haveTextAfter = (textAfter.trim().length > 0);
   let mgnBelow = settings.marginBottom;

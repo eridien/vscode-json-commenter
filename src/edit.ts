@@ -43,7 +43,7 @@ interface Block {
   blocklines:      Array<BlockLine>;
 }
 
-let curEditor: vscode.TextEditor | null = null;
+let curEditor:    vscode.TextEditor | null = null;
 let editingBlock: Block | null | undefined = null;
 
 export function decorateBlock() {
@@ -58,7 +58,7 @@ export function decorateBlock() {
   for (let lineIdx = startLine; lineIdx <= endLine; lineIdx++) 
       ranges.push(new vscode.Range(lineIdx, startChar, lineIdx, endChar));
   if(!decorationType) decorationType = 
-                       vscode.window.createTextEditorDecorationType(decorSpec);
+                      vscode.window.createTextEditorDecorationType(decorSpec);
   curEditor.setDecorations(decorationType, ranges);
 }
 

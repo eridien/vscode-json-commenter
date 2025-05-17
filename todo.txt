@@ -1,6 +1,7 @@
 bugs ...
   
 todo ...
+  keep box height at minimum setting
   highlight dark theme
   if click outside of currently editing document stop editing
   if click in currently editing document do nothing
@@ -26,7 +27,7 @@ settings ...
   quoteStr: "'",
   headerStr: '-',
   footerStr: '-',
-  lineCount: 1,
+  minimum lineCount: 1,
   beforeClickPos: false,
   editing highlight color
 

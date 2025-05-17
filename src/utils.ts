@@ -1,7 +1,7 @@
 import vscode     from 'vscode';
 const { log, start, end } = getLog('util');
 
-export function invBase4ToStr(str:String) {
+export function invBase4ToVisStr(str:String) {
   const digitMap: { [key: string]: string } = {
     '\u200B': '0', // Zero Width Space
     '\u200C': '1', // Zero Width Non-Joiner
