@@ -1,9 +1,8 @@
 bugs ...
-  updateBlock won't work on lines too long or short
   updateBlock doesn't handle number of lines changing
+  updateBlock range should cover current edit line text
 
 todo ...
-  keep box height at minimum setting
   dark theme highlight
   set editor.unicodeHighlight.invisibleCharacters
 
@@ -16,7 +15,6 @@ settings ...
   quoteStr: "'",
   headerStr: '-',
   footerStr: '-',
-  minimum lineCount: 1,
   beforeClickPos: false,
   editing highlight color
 

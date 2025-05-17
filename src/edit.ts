@@ -193,7 +193,6 @@ async function updateBlock() {
       const lineRange = new vscode.Range( 
                               lineNumber, startChar, lineNumber, endChar);
       wsEdit.replace(docUri, lineRange, lineText);   
-
       lineText = '';
     }
     else {
@@ -202,19 +201,24 @@ async function updateBlock() {
     }
     lineNumber++;
   }
-  if(lineText.length > 0) {
-    lineText += ' '.repeat(lineWidth - lineText.length);
-    lineNumber++;
-    const lineRange = new vscode.Range( 
-                        lineNumber, startChar, lineNumber, endChar);
-    wsEdit.replace(docUri, lineRange, lineText); 
-  }
+  lineText += ' '.repeat(lineWidth - lineText.length);
+  const lineRange = new vscode.Range( 
+                      lineNumber, startChar, lineNumber, endChar);
+  wsEdit.replace(docUri, lineRange, lineText); 
   await vscode.workspace.applyEdit(wsEdit);
   decorateBlock();
+  if(editingBlock.isNew) {
+    editingBlock.isNew = false;
+    const startPos = new vscode.Position(
+                 editingBlock.startLine + (editingBlock.hasTopBorder ? +1 : 0),
+                 editingBlock.startText);
+    curEditor.selection = new vscode.Selection(startPos, startPos);
+  }
 }
 
 
-export async function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
+export async function selectionChanged(
+                                 event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
   if(curEditor && editor !== curEditor) { stopEditing(); return; }
   if(selections.length == 1 && selections[0].isEmpty &&
@@ -265,7 +269,7 @@ function inEditLine(range: vscode.Range): boolean {
          end.character   <= lastChar;
 }
 
-export function documentChanged(event: vscode.TextDocumentChangeEvent) {
+export async function documentChanged(event: vscode.TextDocumentChangeEvent) {
   const { document, contentChanges } = event;
   if (contentChanges.length === 0) return;
   if (!curEditor || document !== curEditor.document) { 
@@ -276,8 +280,8 @@ export function documentChanged(event: vscode.TextDocumentChangeEvent) {
     for (const change of contentChanges) {
       const { range, rangeLength, text } = change;
       if (rangeLength === 0 && text.length === 0) continue;
-      if(range.start.line < editingBlock.startLine ||
-         range.end.line   > editingBlock.endLine) {
+      if (range.start.line < editingBlock.startLine ||
+          range.end.line   > editingBlock.endLine) {
         stopEditing();
         return;
       }
@@ -293,6 +297,7 @@ export function documentChanged(event: vscode.TextDocumentChangeEvent) {
         stopEditing();
         return;
       }
+      await updateBlock();
     }
   }
 }

@@ -20,7 +20,6 @@ const settings = {
     quoteStr: "'",
     headerStr: '-',
     footerStr: '-',
-    lineCount: 1,
     beforeClickPos: false,
   };
 
@@ -154,9 +153,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   if(initMsg.length > settings.width) initMsg = initialMsgMed;
   if(initMsg.length > settings.width) initMsg = initialMsgShort;
   if(initMsg.length > settings.width) initMsg = '';
-  for (let i = 0; i < settings.lineCount; i++)
-    await drawLine((i == 0 ? initMsg : ''), false, 
-                (!settings.footerStr && i === (settings.lineCount - 1)));
+  await drawLine(initMsg, false, !settings.footerStr);
   if (settings.footerStr) await drawLine(settings.footerStr, true, true);
   const haveTextAfter = (textAfter.trim().length > 0);
   let mgnBelow = settings.marginBottom;
