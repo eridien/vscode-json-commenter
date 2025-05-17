@@ -112,7 +112,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
 
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
     let idStr      = utils.numberToInvBase4(++lastInvNumber, edit.ID_WIDTH);
-    let typeStr    = utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0))
+    let typeStr    = utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0));
     let paddingStr = utils.num2inv(settings.padding);
     if(DBG_IDSTR) {
       idStr      = utils.invBase4ToVisStr(idStr);
@@ -154,9 +154,9 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   if(initMsg.length > settings.width) initMsg = initialMsgMed;
   if(initMsg.length > settings.width) initMsg = initialMsgShort;
   if(initMsg.length > settings.width) initMsg = '';
-  for (let i = 0; i < settings.minLineCount; i++)
+  for (let i = 0; i < settings.lineCount; i++)
     await drawLine((i == 0 ? initMsg : ''), false, 
-                (!settings.footerStr && i === (settings.minLineCount - 1)));
+                (!settings.footerStr && i === (settings.lineCount - 1)));
   if (settings.footerStr) await drawLine(settings.footerStr, true, true);
   const haveTextAfter = (textAfter.trim().length > 0);
   let mgnBelow = settings.marginBottom;
