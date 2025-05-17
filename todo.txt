@@ -1,5 +1,7 @@
 bugs ...
-  
+  updateBlock won't work on lines too long or short
+  updateBlock doesn't handle number of lines changing
+
 todo ...
   keep box height at minimum setting
   dark theme highlight

@@ -40,6 +40,7 @@ interface Block {
   hasTopBorder:    boolean;
   hasBottomBorder: boolean;
   hasComma:        boolean;
+  isNew:           boolean;
   blocklines:      Array<BlockLine>;
 }
 
@@ -132,6 +133,7 @@ function getBlock(document: vscode.TextDocument,
   const hasTopBorder    = firstLine.border;
   let   hasBottomBorder = false;
   let   hasComma        = false;
+  let   isNew           = true;
   for(let i = 0; i < blocklines.length; i++) {
     const blkLine = blocklines[i];
     if(blkLine.text.length != textLen || 
@@ -149,10 +151,70 @@ function getBlock(document: vscode.TextDocument,
   const startText = firstLine.indentLen + 1 + ID_WIDTH + 5 + padLen;
   const endText   = startText + firstLine.text.length;
   return { startLine, endLine, padLen, startText, endText, text, 
-           hasTopBorder, hasBottomBorder, hasComma, blocklines };
+           hasTopBorder, hasBottomBorder, hasComma, isNew, blocklines };
 }
 
-export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
+async function updateBlock() {
+  if (!curEditor || !editingBlock) return;
+  const wsEdit    = new vscode.WorkspaceEdit();
+  const docUri    = curEditor.document.uri;
+  const startLine = editingBlock.startLine + 
+                   (editingBlock.hasTopBorder ? +1 : 0);
+  const startChar = editingBlock.startText;
+  const endChar   = editingBlock.endText;
+  const lineWidth = endChar - startChar;
+  let text        = editingBlock.text;
+  let matches     = [...text.matchAll(/(\S+)(\s*)/g)]
+                     .map(m => [m[0], m[1], m[2]] as [string, string, string]);
+  let match: [string, string, string] | undefined;
+  let lineNumber  = startLine;
+  let lineText = '';
+  while((match = matches.shift())) {
+    let word   = match[1];
+    let spaces = match[2];
+    const addWordParts: [string, string, string][] = [];
+    while(word.length > lineWidth-1) {
+      const oneLineWord = word.slice(0, lineWidth-1) + '-';
+      addWordParts.push([oneLineWord, oneLineWord, '']);
+      word = word.slice(lineWidth-1);
+    }
+    if(addWordParts.length > 0) {
+      if(word.length > 0) addWordParts.push([word, word, '']);
+      matches.shift();
+      matches.unshift(...addWordParts);
+      match  = matches.shift();
+      word   = match![1];
+      spaces = '';
+    }
+    if((lineText.length + word.length) > lineWidth) {
+      matches.unshift(match!);
+      lineText = lineText.slice(0, lineWidth) + 
+                       (' '.repeat(lineWidth - lineText.length));
+      const lineRange = new vscode.Range( 
+                              lineNumber, startChar, lineNumber, endChar);
+      wsEdit.replace(docUri, lineRange, lineText);   
+
+      lineText = '';
+    }
+    else {
+      lineText += word + spaces;
+      lineText = lineText.slice(0, lineWidth);
+    }
+    lineNumber++;
+  }
+  if(lineText.length > 0) {
+    lineText += ' '.repeat(lineWidth - lineText.length);
+    lineNumber++;
+    const lineRange = new vscode.Range( 
+                        lineNumber, startChar, lineNumber, endChar);
+    wsEdit.replace(docUri, lineRange, lineText); 
+  }
+  await vscode.workspace.applyEdit(wsEdit);
+  decorateBlock();
+}
+
+
+export async function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
   if(curEditor && editor !== curEditor) { stopEditing(); return; }
   if(selections.length == 1 && selections[0].isEmpty &&
@@ -166,11 +228,15 @@ export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
     }
     editingBlock = getBlock(editor.document, clickPos, line);
     if(editingBlock === null) {
-      log('infoerr', 'Comment is corrupted. Create a new comment.');
+      log('infoerr', 'Comment is corrupted. Fix it or create a new comment.');
       return;
     }
     curEditor = editor;
     decorateBlock();
+    if(editingBlock.isNew) {
+      editingBlock.text = '';
+      await updateBlock();
+    }
     log('Editing started.');
   }
 }
@@ -189,7 +255,7 @@ function inEditLine(range: vscode.Range): boolean {
                       (editingBlock.hasTopBorder    ? +1 : 0);
   const lastLineNum  = editingBlock.endLine   +
                       (editingBlock.hasBottomBorder ? -1 : 0);
-  const firstChar    = editingBlock.startText - editingBlock.padLen;
+  const firstChar    = editingBlock.startText - editingBlock.padLen - 1;
   const lastChar     = editingBlock.endText   + editingBlock.padLen;
   const { start, end } = range;
   return start.line      == end.line      &&
@@ -199,10 +265,10 @@ function inEditLine(range: vscode.Range): boolean {
          end.character   <= lastChar;
 }
 
-export function documentEdited(event: vscode.TextDocumentChangeEvent) {
+export function documentChanged(event: vscode.TextDocumentChangeEvent) {
   const { document, contentChanges } = event;
   if (contentChanges.length === 0) return;
-  if (curEditor && document !== curEditor.document) { 
+  if (!curEditor || document !== curEditor.document) { 
     stopEditing(); 
     return; 
   }
