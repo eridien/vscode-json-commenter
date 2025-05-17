@@ -10,6 +10,9 @@ doesn't work in ...
   bookmarks.json, comments cleared on reboot
 
 todo ...
+  highlight dark theme
+  if click outside of currently editing document stop editing
+  if click in currently editing document do nothing
   checking block on every click requires lineAt which is slow
     keep track of blocks
     get blocks on page load and every edit above last block

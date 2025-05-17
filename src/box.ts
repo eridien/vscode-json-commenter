@@ -1,9 +1,9 @@
-import vscode        from 'vscode';
-import * as edt      from './edit';
-import * as utils    from './utils';
-import { Point }     from './parse';
-import { getLog }    from './utils';
-const { log, start, end } = getLog('boxx');
+import vscode         from 'vscode';
+import * as parse     from './parse';
+import type { Point } from './parse';
+import * as edit      from './edit';
+import * as utils     from './utils';
+const { log, start, end } = utils.getLog('boxx');
 
 const initialMsgLong  = 'JSON Commenter: Click here and start typing.';
 const initialMsgMed   = 'Click here and start typing.';
@@ -19,6 +19,7 @@ const settings = {
     headerStr: '-',
     footerStr: '-',
     lineCount: 1,
+    beforeClickPos: false,
   };
 
 const indentStr = ' '.repeat(settings.indent);
@@ -46,12 +47,12 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     const pointPos = new vscode.Position(curLine, curChar);
     const line     = document.lineAt(curLine);
     const lineText = line.text;
-    const edit     = new vscode.WorkspaceEdit();
+    const wsEdit     = new vscode.WorkspaceEdit();
 
     if (curChar == 0) {
       textAfter = lineText;
       textAfterOfs = 0;
-      edit.delete(docUri, line.range);
+      wsEdit.delete(docUri, line.range);
     }
     else {
       if(point.side == 'left' || point.side == 'both') {
@@ -65,7 +66,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
         textAfterOfs = curChar;
         const remTextRange = new vscode.Range(
             removePos, new vscode.Position(curLine, lineText.length));    
-        edit.replace(docUri, remTextRange, noEol ? '' : eol); // type 2
+        wsEdit.replace(docUri, remTextRange, noEol ? '' : eol); // type 2
         if(!noEol) curLine++;
       }
       else { 
@@ -73,7 +74,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
                                      point.epilog.indexOf(',') != -1);
         if(point.side == 'right' && !hasComma) {
           // no comma found, add one immediately after the point
-          edit.insert(docUri, pointPos, ',' + eol);
+          wsEdit.insert(docUri, pointPos, ',' + eol);
           curLine++;
           addedComma = true;
         }
@@ -93,22 +94,22 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
             end = eol;
             curLine++;
           }
-          edit.replace(docUri, remTextRange, end);
+          wsEdit.replace(docUri, remTextRange, end);
         }
       }
     }
-    await vscode.workspace.applyEdit(edit);
+    await vscode.workspace.applyEdit(wsEdit);
   }
   
   async function insertLine(lineText: string) {
-    const edit   = new vscode.WorkspaceEdit();
+    const wsEdit   = new vscode.WorkspaceEdit();
     const bolPos = new vscode.Position(curLine++, 0);
-    edit.insert(docUri, bolPos, lineText);
-    await vscode.workspace.applyEdit(edit);
+    wsEdit.insert(docUri, bolPos, lineText);
+    await vscode.workspace.applyEdit(wsEdit);
   };
 
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
-    const invId = utils.numberToInvBase4(++lastInvNumber, edt.ID_WIDTH)  + // id
+    const invId = utils.numberToInvBase4(++lastInvNumber, edit.ID_WIDTH)  + // id
                   utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0)) + // type
                   utils.num2inv(settings.padding);                         // pad width
     text = text.replaceAll(/"/g, settings.quoteStr);
@@ -156,4 +157,76 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   for (let i = 0; i < mgnBelow; i++) await insertLine(eol);
   if (haveTextAfter)
          await insertLine(' '.repeat(textAfterOfs) + textAfter);
+}
+
+export async function openClick() {
+  const textEditor = vscode.window.activeTextEditor;
+  const document   = textEditor?.document;
+  if(!document) {
+    log('info', 'No active textEditor found.');
+    return;
+  }
+  if(document.languageId !== 'json' && document.languageId !== 'jsonc') {
+    log('info', 'Not a json file.');
+    return;
+  }
+  const clickPos = textEditor?.selection?.active;
+  if (!clickPos) {
+    log('info', 'No position selected.');
+    return;
+  }
+
+  const points = parse.getPoints(document);
+  if (points.length === 0) {
+    log('info', 'No object found to place comment in.');
+    return;
+  }
+  if (points[0].line === -1) {
+    log(points[0].side, points[0].epilog);
+    return;
+  }
+  let pointBeforeClick: parse.Point | null= null;
+  let pointAfterClick : parse.Point | null= null;
+
+  for (const point of points) {
+    if (point.line > clickPos.line ||
+        (point.line === clickPos.line &&
+          point.character >= clickPos.character)) {
+      pointAfterClick = point;
+      break;
+    }
+    if (point.line < clickPos.line ||
+        (point.line === clickPos.line &&
+         point.character <= clickPos.character)) {
+      pointBeforeClick = point;
+    }
+  }
+  
+  if(settings.beforeClickPos) {
+    if(pointBeforeClick) {
+      // log('json Point before click:', pointBeforeClick, clickPos);
+      await insertBox(document, pointBeforeClick);
+      return;
+    }
+    else if(pointAfterClick) {
+      // log('No json point before click, using after:', 
+      //              pointBeforeClick, clickPos);
+      await insertBox(document, pointAfterClick);
+      return;
+    }
+  }
+  else {
+    if(pointAfterClick) {
+        // log('Json point after click:', pointAfterClick, clickPos);
+        await insertBox(document, pointAfterClick);
+        return;
+    }
+    if(pointBeforeClick) {
+      // log(' No json point after click, using before:', 
+      //               pointBeforeClick, clickPos);
+      await insertBox(document, pointBeforeClick);
+      return;
+    }
+  }
+  log('err', 'Impossible: No json point before or after the click position.');
 }

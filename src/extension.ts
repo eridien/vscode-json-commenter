@@ -1,15 +1,14 @@
 import * as vscode from 'vscode';
-import * as cmds   from './commands';
+import * as box    from './box';
 import * as edit   from './edit';
 
 export async function activate(context: vscode.ExtensionContext) {
 
-  await cmds.openClick();
+  await box.openClick();  // debug only
 
-	// cmds.test();
 	const registerCommand = vscode.commands.registerCommand(
             'vscode-json-commenter.open', async () => {
-		await cmds.openClick();
+		await box.openClick();
 	});
 
   const selectionDisposable = vscode.window.onDidChangeTextEditorSelection(event => {
@@ -18,16 +17,14 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const textDocumentDisposable = vscode.workspace.onDidChangeTextDocument(event => {
-    const document = event.document;
-    if (event?.document?.uri?.scheme !== 'file') { return; }
     edit.textEdited(event) ;
   });
 
-  const visibleEditorsDisposable = vscode.window.onDidChangeVisibleTextEditors(() => {
-    edit.stopEditing();
+  const visibleEditorsDisposable = vscode.window.onDidChangeVisibleTextEditors((editors) => {
+    edit.chgVisibleEditors(editors);
   });
 
-  const activeEditorDisposable = vscode.window.onDidChangeActiveTextEditor(() => {
+  const activeEditorDisposable = vscode.window.onDidChangeActiveTextEditor(editor => {
     edit.stopEditing();
   });
 

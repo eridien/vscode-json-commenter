@@ -5,6 +5,20 @@ const { log, start, end } = utils.getLog('edit');
 
 export const ID_WIDTH = 6;
 
+const decorSpec = {
+  backgroundColor: 'rgba(255,255,0,0.3)',
+  // border: '1px solid orange',
+  // borderRadius: '2px',
+  // overviewRulerColor: 'yellow',
+  // overviewRulerLane: vscode.OverviewRulerLane.Right,
+  // fontWeight: 'bold',
+  // after: {
+  //   contentText: ' ←',
+  //   color: 'red',
+};
+
+let decorationType: vscode.TextEditorDecorationType | null = null;
+
 interface BlockLine {
   lineLen:    number;
   indentLen:  number;
@@ -26,7 +40,31 @@ interface Block {
   blocklines: Array<BlockLine>;
 }
 
+let curEditor: vscode.TextEditor | null = null;
 let editingBlock: Block | null | undefined = null;
+
+export function decorateBlock() {
+  if (!curEditor || !editingBlock) return;
+  const startLine = editingBlock.startLine;
+  const endLine   = editingBlock.endLine;
+  const startChar = editingBlock.startText;
+  const endChar   = editingBlock.endText;
+  const ranges: vscode.Range[] = [];
+  for (let lineIdx = startLine; lineIdx <= endLine; lineIdx++) 
+      ranges.push(new vscode.Range(lineIdx, startChar, lineIdx, endChar));
+  if(!decorationType) decorationType = 
+                       vscode.window.createTextEditorDecorationType(decorSpec);
+  curEditor.setDecorations(decorationType, ranges);
+}
+
+function clrDecoration() {
+  if(curEditor && decorationType)
+     curEditor.setDecorations(decorationType, []);
+  if(decorationType) {
+    decorationType.dispose();
+    decorationType = null;
+  }
+}
 
 const oneInvChar  = '[\u200B\u200C\u200D\u2060]';
 export const invChrRegEx = new RegExp(oneInvChar);
@@ -103,21 +141,27 @@ function getBlock(document: vscode.TextDocument,
   return { startLine, endLine, startText, endText, text, hasComma, blocklines };
 }
 
-function startEditing() {
-  if (!editingBlock) return;
-  // editor.setDecorations(decorationType, [range]);
-  log('Editing started.');
-}
-
 export function stopEditing() {
   if (!editingBlock) return;
-  // clear and dispose decorations
+  clrDecoration();
+  curEditor    = null;
   editingBlock = null;
   log('Editing ended.');
 }
 
+export function chgVisibleEditors(editors: readonly vscode.TextEditor[]) {
+  if (!editingBlock) return;
+  let editorIsVisible = false;
+  editors.forEach(editor => {
+    if(editor.document.uri === curEditor?.document.uri) editorIsVisible = true;
+  });
+  if(!editorIsVisible) stopEditing();
+}
+
 export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
+  if(curEditor && editor !== curEditor) { stopEditing(); return; }
+  if(editingBlock) return;
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
     const clickPos = selections[0].active;
@@ -128,10 +172,14 @@ export function selectionChanged(event:vscode.TextEditorSelectionChangeEvent) {
       log('infoerr', 'Comment is corrupted. Create a new comment.');
       return;
     }
-    startEditing();
+    curEditor = editor;
+    decorateBlock();
+    log('Editing started.');
   }
 }
 
 export function textEdited(event: vscode.TextDocumentChangeEvent) {
+  if (!editingBlock) return;
+  if(event.document.uri !== curEditor?.document.uri) stopEditing(); 
 }
 
