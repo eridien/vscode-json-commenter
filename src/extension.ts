@@ -17,7 +17,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const textDocumentDisposable = vscode.workspace.onDidChangeTextDocument(event => {
-    edit.textEdited(event) ;
+    edit.documentEdited(event) ;
   });
 
   const visibleEditorsDisposable = vscode.window.onDidChangeVisibleTextEditors((editors) => {

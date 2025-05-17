@@ -183,16 +183,23 @@ export function stopEditing() {
   log('Editing ended.');
 }
 
-export function chgVisibleEditors(editors: readonly vscode.TextEditor[]) {
-  if (!editingBlock) return;
-  let editorIsVisible = false;
-  editors.forEach(editor => {
-    if(editor.document.uri === curEditor?.document.uri) editorIsVisible = true;
-  });
-  if(!editorIsVisible) stopEditing();
+function inEditLine(range: vscode.Range): boolean {
+  if (!editingBlock) return false;
+  const firstLineNum = editingBlock.startLine +
+                      (editingBlock.hasTopBorder    ? +1 : 0);
+  const lastLineNum  = editingBlock.endLine   +
+                      (editingBlock.hasBottomBorder ? -1 : 0);
+  const firstChar    = editingBlock.startText - editingBlock.padLen;
+  const lastChar     = editingBlock.endText   + editingBlock.padLen;
+  const { start, end } = range;
+  return start.line      == end.line      &&
+         start.line      >= firstLineNum  &&
+         end.line        <= lastLineNum   &&
+         start.character >= firstChar     &&
+         end.character   <= lastChar;
 }
 
-export function textEdited(event: vscode.TextDocumentChangeEvent) {
+export function documentEdited(event: vscode.TextDocumentChangeEvent) {
   const { document, contentChanges } = event;
   if (contentChanges.length === 0) return;
   if (curEditor && document !== curEditor.document) { 
@@ -208,6 +215,28 @@ export function textEdited(event: vscode.TextDocumentChangeEvent) {
         stopEditing();
         return;
       }
+      if(!inEditLine(range)) {
+        log('infoerr', 'Cannot edit outside of text. Please fix.');
+        stopEditing();
+        return;
+      }
+      const line       = document.lineAt(range.start.line);
+      const blockLine  = getBlockLine(document, range.start.line, line);
+      if(!blockLine) {
+        log('infoerr', 'Comment line is corrupted. Please fix.');
+        stopEditing();
+        return;
+      }
     }
   }
 }
+
+export function chgVisibleEditors(editors: readonly vscode.TextEditor[]) {
+  if (!editingBlock) return;
+  let editorIsVisible = false;
+  editors.forEach(editor => {
+    if(editor.document.uri === curEditor?.document.uri) editorIsVisible = true;
+  });
+  if(!editorIsVisible) stopEditing();
+}
+

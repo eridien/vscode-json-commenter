@@ -13,8 +13,8 @@ const initialMsgShort = 'Click here.';
 
 const settings = {
     indent: 4,
-    marginTop: 2,
-    marginBottom: 2,
+    marginTop: 1,
+    marginBottom: 1,
     padding: 2,
     width: 40,
     quoteStr: "'",
