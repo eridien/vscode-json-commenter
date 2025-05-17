@@ -2,20 +2,9 @@ bugs ...
   
 todo ...
   keep box height at minimum setting
-  highlight dark theme
+  dark theme highlight
   if click outside of currently editing document stop editing
   if click in currently editing document do nothing
-  checking block on every click requires lineAt which is slow
-    keep track of blocks
-    get blocks on page load and every edit above last block
-       use bookmark logic 
-       use getText not lineAt
-  problem: blocks can have different char positions
-    fixed id width  -- 10 bits
-    fixed type width -- 4 bits
-    re-use old ids?
-  add version -- 2 bits 
-    can expand later via sub-field
   set editor.unicodeHighlight.invisibleCharacters
 
 settings ...
