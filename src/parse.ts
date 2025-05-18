@@ -1,7 +1,6 @@
 declare var require: any;
 import vscode     from 'vscode';
 const jsonAsty  = require('json-asty');
-import * as edt   from './edit';
 import * as utils from './utils';
 const { log, start, end } = utils.getLog('pars');
 
@@ -17,9 +16,8 @@ export function getPoints(document: vscode.TextDocument): Point[] {
   const jsonLines    = jsonText.split(/\r?\n/);
   const linesInBlock = [] as number[];
   jsonLines.forEach((line, lineNum) => {
-    if(edt.invChrRegEx.test(line)) linesInBlock.push(lineNum);
+    if(utils.invChrRegEx.test(line)) linesInBlock.push(lineNum);
   });
-  
   let left = true;
   function jsonAstWalk(ast: any): Point[]  {
     if (typeof ast !== "object")

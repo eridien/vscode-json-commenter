@@ -34,14 +34,8 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   let addedComma    = false;
   let textAfter     = '';
   let textAfterOfs  = 0;
-  let lastInvNumber = 0;
 
-  const docText = document.getText();
-  const matches = [...docText.matchAll(/"([\u200B\u200C\u200D\u2060]+)":/g)];
-  for(const match of matches) {
-    const num = utils.invBase4ToNumber(match[1]);
-    lastInvNumber = Math.max(num, lastInvNumber);
-  }
+  utils.initIdNumber(document);
 
   async function prepareForInsertion() {
     let curChar    = point.character;
@@ -110,7 +104,7 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
   };
 
   async function drawLine(text: string, isBorder = false, lastLine = false ) {
-    let idStr      = utils.numberToInvBase4(++lastInvNumber, edit.ID_WIDTH);
+    let idStr      = utils.getIdStr();
     let typeStr    = utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0));
     let paddingStr = utils.num2inv(settings.padding);
     if(DBG_IDSTR) {

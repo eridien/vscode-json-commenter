@@ -1,6 +1,19 @@
 import vscode     from 'vscode';
 const { log, start, end } = getLog('util');
 
+export const ID_WIDTH = 6;
+
+export const oneInvChar  = '[\u200B\u200C\u200D\u2060]';
+export const invChrRegEx = new RegExp(oneInvChar);
+export const idRegEx = new RegExp( 
+                          `"(${oneInvChar}{${ID_WIDTH}})${oneInvChar}{2}"`, 'g');
+export const lineRegEx = new RegExp(
+                          `^( *)"(${oneInvChar}{${ID_WIDTH}})(${oneInvChar})` +
+                                `(${oneInvChar})":"(.*?)"(\,?)\s*$`);
+
+
+const zeroWidthChars = ['\u200B', '\u200C', '\u200D', '\u2060'];
+
 export function invBase4ToVisStr(str:String) {
   const digitMap: { [key: string]: string } = {
     '\u200B': '0', // Zero Width Space
@@ -17,7 +30,6 @@ export function invBase4ToVisStr(str:String) {
   return digitsStr;
 }
 
-const zeroWidthChars = ['\u200B', '\u200C', '\u200D', '\u2060'];
 
 export function num2inv(num: number): string {
   return zeroWidthChars[num] ?? '?';
@@ -65,6 +77,22 @@ export function invBase4ToNumber(str: string) {
     num = num * 4 + digit;
   }
   return num;
+}
+
+let lastIdNumber = 0;
+
+export function getIdStr(): string {
+  return  numberToInvBase4(++lastIdNumber, ID_WIDTH);
+}
+
+export function initIdNumber(document: vscode.TextDocument) {
+  lastIdNumber = 0;
+  const docText = document.getText();
+  const matches = [...docText.matchAll(idRegEx)];
+  for(const match of matches) {
+    const num = invBase4ToNumber(match[1]);
+    lastIdNumber = Math.max(num, lastIdNumber);
+  }
 }
 
 /**
