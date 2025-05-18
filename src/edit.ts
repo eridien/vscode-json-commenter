@@ -32,10 +32,14 @@ interface BlockLine {
 
 interface Block {
   startLine:       number;
+  startTextLine:   number;
+  endTextLine:     number;
   endLine:         number;
+  startPadChar:    number;
+  startTextChar:   number;
+  endTextChar:     number;
+  endPadChar:      number;
   padLen:          number;
-  startText:       number;
-  endText:         number;
   text:            string;
   hasTopBorder:    boolean;
   hasBottomBorder: boolean;
@@ -49,15 +53,11 @@ let editingBlock: Block | null | undefined = null;
 
 export function decorateBlock() {
   if (!curEditor || !editingBlock) return;
-  const startLine = editingBlock.startLine + 
-                   (editingBlock.hasTopBorder    ? +1 : 0);
-  const endLine   = editingBlock.endLine   + 
-                   (editingBlock.hasBottomBorder ? -1 : 0);
-  const startChar = editingBlock.startText - editingBlock.padLen;
-  const endChar   = editingBlock.endText   + editingBlock.padLen;
   const ranges: vscode.Range[] = [];
-  for (let lineIdx = startLine; lineIdx <= endLine; lineIdx++) 
-      ranges.push(new vscode.Range(lineIdx, startChar, lineIdx, endChar));
+  for (let lineIdx = editingBlock.startTextLine; 
+           lineIdx <= editingBlock.endTextLine; lineIdx++)
+      ranges.push(new vscode.Range(lineIdx, editingBlock.startTextChar, 
+                                   lineIdx, editingBlock.endTextChar));
   if(!decorationType) decorationType = 
                       vscode.window.createTextEditorDecorationType(decorSpec);
   curEditor.setDecorations(decorationType, ranges);
@@ -79,7 +79,7 @@ const lineRegEx   = new RegExp(
         `(${oneInvChar})":"(.*?)"(\,?)\s*$`);
 
 function getBlockLine(document: vscode.TextDocument, lineNumber: number, 
-                          line: vscode.TextLine | null) : BlockLine | null {
+                          line: vscode.TextLine) : BlockLine | null {
   if (!line) return null;
   const groups = lineRegEx.exec(line.text);
   if(!groups) return null;
@@ -114,22 +114,28 @@ function getBlock(document: vscode.TextDocument,
   let lineNum = lineNumber;
   let blkLine: BlockLine | null;
   do{
-    const line  = document.lineAt(--lineNum);
+    const line = document.lineAt(--lineNum);
     blkLine = getBlockLine(document, lineNum, line);
     if(blkLine) blocklines.unshift(blkLine);
   } while(blkLine);
   const startLine = lineNum+1;
   lineNum = lineNumber;
   do{
-    const line  = document.lineAt(++lineNum);
+    const line = document.lineAt(++lineNum);
     blkLine = getBlockLine(document, lineNum, line);
     if(blkLine) blocklines.push(blkLine);
   } while(blkLine);
   const endLine = lineNum-1;
-  let text = '';
+  let   startTextLine:  number | null = null;
+  let   endTextLine     = 0;
   const firstLine       = blocklines[0];
   const padLen          = firstLine.padLen;
+  const startPadChar    = firstLine.indentLen + 1 + ID_WIDTH + 5;
+  const startTextChar   = startPadChar + padLen;
   const textLen         = firstLine.text.length;
+  const endTextChar     = startTextChar + textLen;
+  const endPadChar      = endTextChar + padLen;
+  let   text            = '';
   const hasTopBorder    = firstLine.border;
   let   hasBottomBorder = false;
   let   hasComma        = false;
@@ -138,6 +144,8 @@ function getBlock(document: vscode.TextDocument,
     const blkLine = blocklines[i];
     if(blkLine.text.length != textLen || 
        blkLine.indentLen != firstLine.indentLen) return null;
+    if(startTextLine === null && !blkLine.border) startTextLine = lineNumber;
+    if(!blkLine.border) endTextLine = lineNumber;
     if(i != blocklines.length-1) {
       if(blkLine.lastLine) return null;
     } else {
@@ -148,27 +156,25 @@ function getBlock(document: vscode.TextDocument,
     if(!blkLine.border) text += blkLine.text + ' ';
   }
   text = text.trim();
-  const startText = firstLine.indentLen + 1 + ID_WIDTH + 5 + padLen;
-  const endText   = startText + firstLine.text.length;
-  return { startLine, endLine, padLen, startText, endText, text, 
+  return { startLine, startTextLine, endTextLine, endLine, 
+           startPadChar, startTextChar, endTextChar, endPadChar, padLen, text, 
            hasTopBorder, hasBottomBorder, hasComma, isNew, blocklines };
 }
 
 async function updateBlock() {
   if (!curEditor || !editingBlock) return;
-  const wsEdit    = new vscode.WorkspaceEdit();
+  const newLines: [vscode.Range, string][] = [];
   const docUri    = curEditor.document.uri;
-  const startLine = editingBlock.startLine + 
-                   (editingBlock.hasTopBorder ? +1 : 0);
-  const startChar = editingBlock.startText;
-  const endChar   = editingBlock.endText;
+  const startLine = editingBlock.startTextLine ;
+  const startChar = editingBlock.startTextChar;
+  const endChar   = editingBlock.endTextChar;
   const lineWidth = endChar - startChar;
   let text        = editingBlock.text;
+  let lineText = '';
+  let lineNumber  = startLine as number;
   let matches     = [...text.matchAll(/(\S+)(\s*)/g)]
                      .map(m => [m[0], m[1], m[2]] as [string, string, string]);
   let match: [string, string, string] | undefined;
-  let lineNumber  = startLine;
-  let lineText = '';
   while((match = matches.shift())) {
     let word   = match[1];
     let spaces = match[2];
@@ -192,7 +198,7 @@ async function updateBlock() {
                        (' '.repeat(lineWidth - lineText.length));
       const lineRange = new vscode.Range( 
                               lineNumber, startChar, lineNumber, endChar);
-      wsEdit.replace(docUri, lineRange, lineText);   
+      newLines.push([lineRange, lineText]);
       lineText = '';
     }
     else {
@@ -204,18 +210,31 @@ async function updateBlock() {
   lineText += ' '.repeat(lineWidth - lineText.length);
   const lineRange = new vscode.Range( 
                       lineNumber, startChar, lineNumber, endChar);
-  wsEdit.replace(docUri, lineRange, lineText); 
+  newLines.push([lineRange, lineText]);
+  const wsEdit = new vscode.WorkspaceEdit();
+  let curNumLines = editingBlock.endTextLine - editingBlock.startTextLine  + 1;
+  while(newLines.length > curNumLines) {
+    const startPos = new vscode.Position(
+                editingBlock.startLine + (editingBlock.hasTopBorder ? +1 : 0),
+                editingBlock.startTextChar);
+
+        newLines[0][1].trim().length === 0) {
+    // Remove empty lines at the start
+    newLines.shift();
+  }
+  for(const [range, text] of newLines) {
+    wsEdit.replace(docUri, range, text);
+  }
   await vscode.workspace.applyEdit(wsEdit);
   decorateBlock();
   if(editingBlock.isNew) {
     editingBlock.isNew = false;
     const startPos = new vscode.Position(
                  editingBlock.startLine + (editingBlock.hasTopBorder ? +1 : 0),
-                 editingBlock.startText);
+                 editingBlock.startTextChar);
     curEditor.selection = new vscode.Selection(startPos, startPos);
   }
 }
-
 
 export async function selectionChanged(
                                  event:vscode.TextEditorSelectionChangeEvent) {
@@ -259,7 +278,7 @@ function inEditLine(range: vscode.Range): boolean {
                       (editingBlock.hasTopBorder    ? +1 : 0);
   const lastLineNum  = editingBlock.endLine   +
                       (editingBlock.hasBottomBorder ? -1 : 0);
-  const firstChar    = editingBlock.startText - editingBlock.padLen - 1;
+  const firstChar    = editingBlock.startTextChar - editingBlock.padLen - 1;
   const lastChar     = editingBlock.endText   + editingBlock.padLen;
   const { start, end } = range;
   return start.line      == end.line      &&
