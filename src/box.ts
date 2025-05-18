@@ -29,12 +29,37 @@ const fullWidth = settings.width + settings.padding * 2;
 
 // lineNum is the line where the box starts -- must be empty
 // lines above and below lineNum will not be affected
+/**
+ * Draws a box starting on a blank line with settings for padding, 
+ * margins, and content. Includes functions to insert lines, 
+ * draw border lines, adjust margins, 
+ * and handle additional text after the box contents.
+ * @export
+ * @async
+ * @param {vscode.TextDocument} document 
+ * @param {number} lineNum 
+ * @param {string[]} textLines 
+ * @param {boolean} [addComma=true] 
+ * @param {string} [textAfter=''] 
+ * @param {number} [textAfterOfs=0] 
+ * @returns {*} Asynchronous function
+ */
 export async function drawBox( document: vscode.TextDocument, lineNum: number, 
-                               textLines: string[], addComma = true) {
+                               textLines: string[], addComma = true, 
+                               textAfter = '', textAfterOfs = 0) {
   const docUri = document.uri;
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   utils.initIdNumber(document);
 
+  /**
+   * Async function to insert a line of text 
+   * at a specified line number in a document.
+   * @async
+   * @param {number} lineNum 
+   * @param {string} [lineText=''] 
+   * @param {boolean} [noEol=false] 
+   * @returns {unknown} Inserts a new line at the specified line
+   */
   async function insertLine(lineNum: number, lineText = '', noEol = false) {
     const wsEdit = new vscode.WorkspaceEdit();
     const bolPos = new vscode.Position(lineNum, 0);
@@ -43,6 +68,19 @@ export async function drawBox( document: vscode.TextDocument, lineNum: number,
     return lineNum + 1;
   };
 
+  /**
+   * Async function to draw a line with customizable properties like
+   * line number, border, last line indicator, text, comma, and end of line.
+   *
+   * @async
+   * @param {number} lineNum 
+   * @param {boolean} [isBorder=false] 
+   * @param {boolean} [lastLine=false] 
+   * @param {string} [text=''] 
+   * @param {boolean} [addComma=true] 
+   * @param {boolean} [noEol=false] 
+   * @returns {unknown} A function that draws a line in a specified format with optional parameters for customizing the line
+   */
   async function drawLine(lineNum: number, isBorder = false, lastLine = false,
                           text = '', addComma = true, noEol = false) {
     let idStr      = utils.getIdStr();
@@ -60,9 +98,19 @@ export async function drawBox( document: vscode.TextDocument, lineNum: number,
     }
     else linestr += padStr + 
          text.slice(0, settings.width).padEnd(settings.width, ' ') + padStr;   
-    return await insertLine(lineNum, linestr + (addComma ? ',' : ''), noEol);
+    return await insertLine(lineNum, linestr + '"' 
+                         + (addComma ? ',' : ''), noEol);
   }
 
+  /**
+   * A function that adjusts the margin by a specified number of lines
+   * either above or below a given line number.
+   *
+   * @param {number} lineNum 
+   * @param {number} marginLines 
+   * @param {boolean} above 
+   * @returns {number}
+   */
   function adjMargin(lineNum: number, 
                      marginLines: number, above: boolean): number {
     const dir = above ? -1 : 1;
@@ -77,6 +125,7 @@ export async function drawBox( document: vscode.TextDocument, lineNum: number,
     return marginLines;
   }
 
+  ///////////////// body of addbox /////////////////
   const mgnAbove = adjMargin(lineNum, settings.marginTop, true);
   for (let i = 0; i < mgnAbove; i++) lineNum = await insertLine(lineNum);
   if (settings.headerStr) 
@@ -88,33 +137,43 @@ export async function drawBox( document: vscode.TextDocument, lineNum: number,
     if(initMsg.length > settings.width) initMsg = '';
     textLines = [initMsg];
   }
-
-
   for (const [i, textLine] of textLines.entries()) {
     const lastLine = (i == textLines.length - 1 && !settings.footerStr);
     lineNum = await drawLine(lineNum, false, lastLine,
-                             textLine, (lastLine && addComma), (lastLine && noEol));
-
+                             textLine, (lastLine ? addComma : true), lastLine);
   }
-
-
-
-  if (settings.footerStr) await drawLine(settings.footerStr, true, true);
+  if (settings.footerStr) lineNum = await drawLine(
+                      lineNum, true, true, settings.footerStr, addComma);
   const haveTextAfter = (textAfter.trim().length > 0);
   let mgnBelow = settings.marginBottom;
   if(!haveTextAfter) mgnBelow = adjMargin(lineNum, mgnBelow, false)-1;
-  for (let i = 0; i < mgnBelow; i++) await insertLine('');
+  for (let i = 0; i < mgnBelow; i++) lineNum = await insertLine(lineNum, '');
   if (haveTextAfter)
          await insertLine(lineNum, ' '.repeat(textAfterOfs) + textAfter, true);
 }
 
-export function insertBox(document: vscode.TextDocument, point: Point) { 
+/**
+ * A function that inserts a box at a specific point 
+ * @export
+ * @param {vscode.TextDocument} document 
+ * @param {Point} point 
+ */
+export async function insertBox(document: vscode.TextDocument, point: Point) { 
+  const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   const docUri      = document.uri;
   let lineNum       = point.line;
   let addedComma    = false;
   let textAfter     = '';
   let textAfterOfs  = 0;
 
+  /**
+   * Async function that prepares a document for insertion 
+   based on the current character position and the context of the point. 
+   Handles various scenarios including deletion, insertion of commas, 
+   and moving the point within the document.
+   * @async
+   * @returns {*} 
+   */
   async function prepareForInsertion() {
     let   curChar  = point.character;
     const pointPos = new vscode.Position(lineNum, curChar);
@@ -172,10 +231,18 @@ export function insertBox(document: vscode.TextDocument, point: Point) {
     }
     await vscode.workspace.applyEdit(wsEdit);
   }
-  prepareForInsertion();
-  drawBox(document, lineNum, textAfter);
+  await prepareForInsertion();
+  await drawBox(document, lineNum, [], 
+               !addedComma, textAfter, textAfterOfs);
 }
 
+/**
+ * Function to open a command in a JSON or JSONC file 
+ * based on the cursor position in the text editor.
+ * @export
+ * @async
+ * @returns {*} 
+ */
 export async function openCommand() {
   const textEditor = vscode.window.activeTextEditor;
   const document   = textEditor?.document;
