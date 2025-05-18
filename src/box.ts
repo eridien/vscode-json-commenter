@@ -83,7 +83,8 @@ export async function drawBox(params: any) {
   const mgnAbove = adjMargin({ lineNum, marginLines: settings.marginTop, above: true });
   for (let i = 0; i < mgnAbove; i++) lineNum = await insertLine({ lineNum });
   if (settings.headerStr) 
-       lineNum = await drawLine({ lineNum, isBorder: true, lastLine: false, text: settings.headerStr, addComma: true });
+       lineNum = await drawLine({ lineNum, isBorder: true, lastLine: false, 
+                                  text: settings.headerStr, addComma: true });
   if (textLines.length == 0) {
     let initMsg = initialMsgLong;
     if(initMsg.length > settings.width) initMsg = initialMsgMed;
@@ -93,22 +94,13 @@ export async function drawBox(params: any) {
   }
   for (const [i, textLine] of textLines.entries()) {
     const lastLine = (i == textLines.length - 1 && !settings.footerStr);
-    lineNum = await drawLine({
-      lineNum,
-      isBorder: false,
-      lastLine,
-      text: textLine,
-      addComma: (lastLine ? addComma : true),
-      noEol: lastLine
-    });
+    lineNum = await drawLine(
+             { lineNum, isBorder: false, lastLine, text: textLine, 
+               addComma: (lastLine ? addComma : true), noEol: lastLine });
   }
-  if (settings.footerStr) lineNum = await drawLine({
-    lineNum,
-    isBorder: true,
-    lastLine: true,
-    text: settings.footerStr,
-    addComma
-  });
+  if (settings.footerStr) lineNum = 
+       await drawLine( { lineNum, isBorder: true, lastLine: true, 
+                         text: settings.footerStr, addComma });
   const haveTextAfter = (textAfter.trim().length > 0);
   let mgnBelow = settings.marginBottom;
   if(!haveTextAfter) 
