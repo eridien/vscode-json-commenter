@@ -44,6 +44,7 @@ interface Block {
   hasBottomBorder: boolean;
   hasComma:        boolean;
   isNew:           boolean;
+  isRect:          boolean;
   blocklines:      Array<BlockLine>;
 }
 
@@ -71,8 +72,9 @@ function clrDecoration() {
   }
 }
 
-function getBlockLine(document: vscode.TextDocument, lineNumber: number, 
-                          line: vscode.TextLine) : BlockLine | null {
+function getBlockLine(document: vscode.TextDocument, 
+                      lineNumber: number): BlockLine | null {
+  const line = document.lineAt(lineNumber);
   if (!line) return null;
   const groups = utils.lineRegEx.exec(line.text);
   if(!groups) return null;
@@ -102,21 +104,21 @@ function getBlock(document: vscode.TextDocument,
                   clickPos: vscode.Position,
                   line: vscode.TextLine): Block | null {
   let lineNumber = clickPos.line;
-  const blockLine = getBlockLine(document, lineNumber, line);
+  const blockLine = getBlockLine(document, lineNumber);
   if(!blockLine) return null;
   const blocklines = [blockLine];
   let lineNum = lineNumber;
   let blkLine: BlockLine | null;
   do{
     const line = document.lineAt(--lineNum);
-    blkLine = getBlockLine(document, lineNum, line);
+    blkLine = getBlockLine(document, lineNum);
     if(blkLine) blocklines.unshift(blkLine);
   } while(blkLine);
   const startLine = lineNum+1;
   lineNum = lineNumber;
   do{
     const line = document.lineAt(++lineNum);
-    blkLine = getBlockLine(document, lineNum, line);
+    blkLine = getBlockLine(document, lineNum);
     if(blkLine) blocklines.push(blkLine);
   } while(blkLine);
   const endLine = lineNum-1;
@@ -130,15 +132,16 @@ function getBlock(document: vscode.TextDocument,
   const textLen         = firstLine.text.length;
   const endTextChar     = startTextChar + textLen;
   const endPadChar      = endTextChar + padLen;
+
   let   text            = '';
   const hasTopBorder    = firstLine.border;
   let   hasBottomBorder = false;
   let   hasComma        = false;
   let   isNew           = true;
+  let   isRect          = true;
   for(let i = 0; i < blocklines.length; i++) {
     const blkLine = blocklines[i];
-    if(blkLine.text.length != textLen || 
-       blkLine.indentLen != firstLine.indentLen) return null;
+    if(blkLine.indentLen != firstLine.indentLen) return null;
     if(startTextLine == -1 && !blkLine.border) startTextLine = lineNumber;
     if(!blkLine.border) endTextLine = lineNumber;
     if(i != blocklines.length-1) {
@@ -149,11 +152,12 @@ function getBlock(document: vscode.TextDocument,
       hasComma        = blkLine.hasComma;
     }
     if(!blkLine.border) text += blkLine.text + ' ';
+    if(blkLine.text.length != textLen) isRect = false;
   }
   text = text.trim();
   return { startLine, startTextLine, endTextLine, endLine, 
            startPadChar, startTextChar, endTextChar, endPadChar, padLen, text, 
-           hasTopBorder, hasBottomBorder, hasComma, isNew, blocklines };
+           hasTopBorder, hasBottomBorder, hasComma, isNew, isRect, blocklines };
 }
 
 function duplicateFirstTextLine(wsEdit: vscode.WorkspaceEdit) {
@@ -172,14 +176,25 @@ function duplicateFirstTextLine(wsEdit: vscode.WorkspaceEdit) {
 
 async function updateBlock() {
   if (!curEditor || !editingBlock) return;
+  const document = curEditor.document;
   const newLines: [vscode.Range, string][] = [];
-  const docUri        = curEditor.document.uri;
+  const docUri        = document.uri;
   const startTextLine = editingBlock.startTextLine;
   const endTextLine   = editingBlock.endTextLine;
   const startTextChar = editingBlock.startTextChar;
-  const endTextChar   = editingBlock.endTextChar;
-  const textWidth     = endTextChar - startTextChar;
+  const blockLine     = getBlockLine(document, startTextLine);
+  if(!blockLine) {
+    log('infoerr', 'Comment line is corrupted. Please fix it.');
+    stopEditing();
+    return;
+  }
+  const textWidth     = blockLine.text.length;
+  const endTextChar   = startTextChar + textWidth;
+
+
   let text            = editingBlock.text;
+
+
   let lineText = '';
   let lineNumber  = startTextLine;
   let matches     = [...text.matchAll(/(\S+)(\s*)/g)]
@@ -311,7 +326,7 @@ export async function documentChanged(event: vscode.TextDocumentChangeEvent) {
         return;
       }
       const line       = document.lineAt(range.start.line);
-      const blockLine  = getBlockLine(document, range.start.line, line);
+      const blockLine  = getBlockLine(document, range.start.line);
       if(!blockLine) {
         log('infoerr', 'Comment line is corrupted. Please fix.');
         stopEditing();
