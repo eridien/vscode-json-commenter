@@ -26,3 +26,6 @@ works in ...
 
 doesn't work in ...
   bookmarks.json, comments cleared on reboot
+
+// change all functions to use an object instead for params,   
+// the type of that object should be "any", just like drawBox
