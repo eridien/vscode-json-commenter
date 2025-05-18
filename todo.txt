@@ -1,9 +1,10 @@
 bugs ...
   updateBlock range should cover current edit line text
-
+  
 todo ...
   dark theme highlight
   set editor.unicodeHighlight.invisibleCharacters
+  text = text.replaceAll(/"/g, settings.quoteStr); 
 
 settings ...
   indent: 4,
