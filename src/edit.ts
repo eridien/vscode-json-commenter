@@ -182,6 +182,7 @@ function getEditArea(document: vscode.TextDocument) :
     log('infoerr', 'JSON Commenter: </comment> is before <comment>.');
     return null;
   }
+  const editText = docText.slice(startIdx, endIdx);
 
 }
 
@@ -215,10 +216,9 @@ async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
   wsEdit.replace(editor.document.uri, blockRange, 
                    block.eol + editStr + block.eol);
   await vscode.workspace.applyEdit(wsEdit);
-  // decorateEditArea();
-  editor.selection = new vscode.Selection(
-               new vscode.Position(editArea.startLine, editArea.startTextChar),
-               new vscode.Position(editArea.endLine,   editArea.endTextChar));
+  decorateEditArea();
+  const typePos = new vscode.Position(editArea.startLine, editArea.startTextChar);
+  editor.selection = new vscode.Selection(typePos, typePos);
   log('Editing started.');
 }
 
@@ -237,6 +237,15 @@ export async function stopEditing() {
   log('Editing ended.');
 }
 
+function inEditArea(pos:vscode.Position): boolean {
+  if (!editArea) return false;
+  const editRange = new vscode.Range(
+    editArea.startLine, editArea.startTextChar,
+    editArea.endLine,   editArea.endTextChar
+  );
+  return editRange.contains(pos);
+}
+
 export async function selectionChanged( event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
   const document = editor.document;
@@ -244,6 +253,10 @@ export async function selectionChanged( event:vscode.TextEditorSelectionChangeEv
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
     const clickPos = selections[0].active;
     if (!clickPos) return;
+    if (editArea && !inEditArea(clickPos)) {
+      await stopEditing();
+      return;
+    }
     const line = document.lineAt(clickPos.line);
     if(!line || !utils.invChrRegEx.test(line.text)) {
       await stopEditing();
@@ -252,14 +265,6 @@ export async function selectionChanged( event:vscode.TextEditorSelectionChangeEv
     await startEditing(editor, clickPos.line);
     log('selectionChanged Editing started.');
   }
-}
-
-function inEditArea(range: vscode.Range): boolean {
-  if (!editArea) return false;
-  const { start, end } = range;
-  return start.line      >= editArea.startLine &&
-         end.line        <= editArea.endLine   &&
-         end.character   <= editArea.endChar;
 }
 
 export async function documentChanged(event: vscode.TextDocumentChangeEvent) {

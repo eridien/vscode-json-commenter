@@ -1,6 +1,7 @@
 bugs ...
   new box inside another box broken
   doc change event during startedit
+  lineToChk
 
 todo ...
   detect and close all edit areas in docs when visible editors change
