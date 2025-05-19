@@ -3,6 +3,7 @@ bugs ...
   doc change event during startedit
 
 todo ...
+  detect and close all edit areas in docs when visible editors change
   remove decoration
   put inv chars in comment tags
   dark theme highlight

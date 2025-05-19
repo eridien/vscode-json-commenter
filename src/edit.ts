@@ -158,6 +158,33 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
            hasTopBorder, hasBottomBorder, hasComma, eol, blocklines };
 }
 
+function getEditArea(document: vscode.TextDocument) : 
+                                          EditArea | null | undefined {
+  const docText = document.getText();
+  const startIdx = docText.indexOf(startEditTag);
+  let startPos : vscode.Position | null = null;
+  if (startIdx === -1) startPos = null;
+  else startPos = document.positionAt(startIdx + startEditTag.length);
+  const endIdx = docText.indexOf(endEditTag);
+  let endPos : vscode.Position | null = null;
+  if (endIdx === -1) endPos = null;
+  else endPos = document.positionAt(endIdx);
+  if(!startPos && !endPos) return undefined;
+  if (endPos && !startPos) {
+    log('infoerr', 'JSON Commenter: <comment> tag is missing.');
+    return null;
+  }
+  if (startPos && !endPos) {
+    log('infoerr', 'JSON Commenter: </comment> tag is missing.');
+    return null;
+  }
+  if(endIdx < startIdx) {
+    log('infoerr', 'JSON Commenter: </comment> is before <comment>.');
+    return null;
+  }
+
+}
+
 async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
   if (editArea) return;
   const block = getBlock(editor.document, lineNumber);
