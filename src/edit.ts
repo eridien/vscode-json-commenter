@@ -47,12 +47,13 @@ interface Block {
 }
 
 interface EditArea {
-  editor:          vscode.TextEditor;
+  editor:         vscode.TextEditor;
   startLine:      number;
+  startChar:      number;
   startTextChar:  number;
-  endLine:        number;
   endTextChar:    number;
   endChar:        number;
+  endLine:        number;
   text:           string;
   hasComma:       boolean;
   decorationType: vscode.TextEditorDecorationType;
@@ -183,12 +184,13 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
     log('infoerr', 'JSON Commenter: </comment> is before <comment>.');
     return null;
   }
-  const startPos = document.positionAt(startIdx + startEditTag.length);
+  const startPos = document.positionAt(startIdx );
   const endPos   = document.positionAt(endIdx);
   const editArea: EditArea = {
     editor,
     startLine:      startPos.line,
-    startTextChar:  startPos.character,
+    startChar:      startPos.character,
+    startTextChar:  startPos.character + startEditTag.length,
     endLine:        endPos.line,
     endTextChar:    endPos.character,
     endChar:        endPos.character,
@@ -210,6 +212,7 @@ async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
   editArea = {
     editor,
     startLine:      block.startLine,
+    startChar:      0,
     startTextChar:  startEditTag.length,
     endLine:        0,
     endTextChar:    0,
@@ -231,22 +234,32 @@ async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
                    block.eol + editStr + block.eol);
   await vscode.workspace.applyEdit(wsEdit);
   decorateEditArea();
-  const typePos = new vscode.Position(editArea.startLine, editArea.startTextChar);
+  const typePos = new vscode.Position(
+                         editArea.startLine, editArea.startTextChar);
   editor.selection = new vscode.Selection(typePos, typePos);
   log('Editing started.');
 }
 
-export async function stopEditing() {
+// editArea must be up-to-date
+export async function stopEditing(editor: vscode.TextEditor) {
   if (!editArea) return;
   clrDecoration();
+  const wsEdit = new vscode.WorkspaceEdit();
+  const editRange = new vscode.Range(
+    editArea.startLine, editArea.startChar,
+    editArea.endLine,   editArea.endChar
+  );
+  wsEdit.delete(editor.document.uri, editRange);
   await box.drawBox({
-    document:  editArea.editor.document,
+    document:  editor.document,
     lineNum:   editArea.startLine,
     textLines: editArea.text.split(/\r?\n/),
     addComma:  editArea.hasComma,
     textAfter: '',
     textAfterOfs: 0,
+    wsEdit
   });
+  await vscode.workspace.applyEdit(wsEdit);
   editArea = null;
   log('Editing ended.');
 }
@@ -267,14 +280,18 @@ export async function selectionChanged( event:vscode.TextEditorSelectionChangeEv
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
     const clickPos = selections[0].active;
     if (!clickPos) return;
-    if (editArea && !inEditArea(clickPos)) {
-      await stopEditing();
-      return;
-    }
-    const line = document.lineAt(clickPos.line);
-    if(!line || !utils.invChrRegEx.test(line.text)) {
-      await stopEditing();
-      return;
+    editArea = getEditArea();
+    if (editArea) {
+      if(editArea.editor.document.uri !== document.uri) return;
+      if (!inEditArea(clickPos)) {
+        await stopEditing();
+        return;
+      }
+      const line = document.lineAt(clickPos.line);
+      if(!line || !utils.invChrRegEx.test(line.text)) {
+        await stopEditing();
+        return;
+      }
     }
     await startEditing(editor, clickPos.line);
     log('selectionChanged Editing started.');
