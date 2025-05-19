@@ -1,7 +1,10 @@
 bugs ...
   new box inside another box broken
-  
+  doc change event during startedit
+
 todo ...
+  remove decoration
+  put inv chars in comment tags
   dark theme highlight
   set editor.unicodeHighlight.invisibleCharacters
   text = text.replaceAll(/"/g, settings.quoteStr); 

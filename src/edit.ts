@@ -38,6 +38,7 @@ interface Block {
   hasTopBorder:    boolean;
   hasBottomBorder: boolean;
   hasComma:        boolean;
+  eol:             string;
 }
 
 interface EditArea {
@@ -54,7 +55,7 @@ interface EditArea {
 
 let editArea: EditArea | null = null;
 
-export function decorateBlock() {
+export function decorateEditArea() {
   if (!editArea) return;
   const ranges: vscode.Range[] = [];
   for (let lineNum  = editArea.startLine; 
@@ -154,7 +155,7 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
   text = text.trim();
   return { document, startLine, startTextLine, endTextLine, endLine,
            startPadChar, startTextChar, endTextChar, endPadChar, padLen, text,
-           hasTopBorder, hasBottomBorder, hasComma, blocklines };
+           hasTopBorder, hasBottomBorder, hasComma, eol, blocklines };
 }
 
 async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
@@ -173,18 +174,24 @@ async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
     endChar:        0,
     text:           block.text,
     block,
-    decorationType: vscode.window.createTextEditorDecorationType(backgroundColor),
+    decorationType: 
+              vscode.window.createTextEditorDecorationType(backgroundColor),
   };
-  const blockRange = new vscode.Range(block.startLine, 0, block.endLine + 1, 0);
-  let editStr          = startEditTag + block.text + endEditTag;
+  const blockRange = 
+               new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
+  let editStr = startEditTag + block.text + endEditTag;
   const editStrLines   = editStr.split(/\r?\n/);
   editArea.endLine     = block.startLine + editStrLines.length - 1;
   editArea.endChar     = editStrLines[editStrLines.length - 1].length;
   editArea.endTextChar = editArea.endChar - endEditTag.length;
   const wsEdit = new vscode.WorkspaceEdit();
-  wsEdit.replace(editor.document.uri, blockRange, editStr);
+  wsEdit.replace(editor.document.uri, blockRange, 
+                   block.eol + editStr + block.eol);
   await vscode.workspace.applyEdit(wsEdit);
-  decorateBlock();
+  // decorateEditArea();
+  editor.selection = new vscode.Selection(
+               new vscode.Position(editArea.startLine, editArea.startTextChar),
+               new vscode.Position(editArea.endLine,   editArea.endTextChar));
   log('Editing started.');
 }
 
@@ -205,8 +212,6 @@ export async function stopEditing() {
 
 export async function selectionChanged( event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
-  if(editArea && editor !== editArea.editor) { await stopEditing(); return; }
-  if(editArea) return;
   const document = editor.document;
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
@@ -218,7 +223,7 @@ export async function selectionChanged( event:vscode.TextEditorSelectionChangeEv
       return;
     }
     await startEditing(editor, clickPos.line);
-    log('Editing started.');
+    log('selectionChanged Editing started.');
   }
 }
 
@@ -237,17 +242,17 @@ export async function documentChanged(event: vscode.TextDocumentChangeEvent) {
     await stopEditing();
     return; 
   }
-  if (editArea) {
-    for (const change of contentChanges) {
-      const { range, rangeLength, text } = change;
-      if (rangeLength === 0 && text.length === 0) continue;
-      if (range.start.line < editArea.startLine ||
-          range.end.line   > editArea.endLine) {
-        await stopEditing();
-        return;
-      }
-    }
-  }
+  // if (editArea) {
+  //   for (const change of contentChanges) {
+  //     const { range, rangeLength, text } = change;
+  //     if (rangeLength === 0 && text.length === 0) continue;
+  //     if (range.start.line < editArea.startLine ||
+  //         range.end.line   > editArea.endLine) {
+  //       await stopEditing();
+  //       return;
+  //     }
+  //   }
+  // }
 }
 
 export async function chgVisibleEditors(editors: readonly vscode.TextEditor[]) {
