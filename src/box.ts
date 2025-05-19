@@ -26,25 +26,23 @@ const padStr    = ' '.repeat(settings.padding);
 const fullWidth = settings.width + settings.padding * 2;
 
 export async function drawBox(params: any) {
-  let { document, lineNumber, textLines, addComma = true, 
+  let { document, lineNum, textLines, addComma = true, 
         textAfter = '', textAfterOfs = 0 } = params;
   const docUri = document.uri;
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   utils.initIdNumber(document);
-  const edits: {text: string }[] = [];
 
-  function insertLine(params: any) {
-    const { lineText = '', noEol = false } = params;
-    // const wsEdit = new vscode.WorkspaceEdit();
-    // const bolPos = new vscode.Position(lineNum, 0);
-    edits.push({ text: lineText + (noEol ? '' : eol) });
-    // wsEdit.insert(docUri, bolPos, lineText + (noEol ? '' : eol));
-    // await vscode.workspace.applyEdit(wsEdit);
-    // return lineNum + (noEol ? 0 : 1);
+  async function insertLine(params: any) {
+    const { lineNum, lineText = '', noEol = false } = params;
+    const wsEdit = new vscode.WorkspaceEdit();
+    const bolPos = new vscode.Position(lineNum, 0);
+    wsEdit.insert(docUri, bolPos, lineText + (noEol ? '' : eol));
+    await vscode.workspace.applyEdit(wsEdit);
+    return lineNum + (noEol ? 0 : 1);
   }
 
-  function drawLine(params: any) {
-    let { isBorder = false, lastLine = false, text = '',
+  async function drawLine(params: any) {
+    let { lineNum, isBorder = false, lastLine = false, text = '',
           addComma  = true, noEol = false } = params;
     let idStr       = utils.getIdStr();
     let hasBreakStr = utils.num2inv((text.indexOf('\n') != -1) ? 1 : 0);
@@ -64,20 +62,18 @@ export async function drawBox(params: any) {
     }
     else linestr += padStr + 
          text.slice(0, settings.width).padEnd(settings.width, ' ') + padStr;   
-    return insertLine({lineText: linestr + '"' + 
-                      (addComma ? ',' : ''), noEol });
+    return await insertLine({ lineNum, lineText: linestr + '"' + (addComma ? ',' : ''), noEol });
   }
 
   function adjMargin(params: any): number {
-    const {marginLines, above} = params;
+    const { lineNum, marginLines, above } = params;
     const dir = above ? -1 : 1;
     let count = 1;
     let mLines = marginLines;
     while(mLines > 0) {
-      const lineToChk = lineNumber + dir * count;
+      const lineToChk = lineNum + dir * count;
       if((lineToChk < 0 || lineToChk >= document.lineCount) ||
-          document.lineAt(lineToChk)
-                  .text.trim().length != 0) break;
+          document.lineAt(lineToChk).text.trim().length != 0) break;
       count++;
       mLines--;
     }
@@ -85,10 +81,10 @@ export async function drawBox(params: any) {
   }
 
   ///////////////// body of addbox /////////////////
-  const mgnAbove = adjMargin({marginLines: settings.marginTop, above: true});
-  for (let i = 0; i < mgnAbove; i++) insertLine({});
+  const mgnAbove = adjMargin({ lineNum, marginLines: settings.marginTop, above: true });
+  for (let i = 0; i < mgnAbove; i++) lineNum = await insertLine({ lineNum });
   if (settings.headerStr) 
-        drawLine({ isBorder: true, lastLine: false, 
+       lineNum = await drawLine({ lineNum, isBorder: true, lastLine: false, 
                                   text: settings.headerStr, addComma: true });
   if (textLines.length == 0) {
     let initMsg = initialMsgLong;
@@ -99,24 +95,21 @@ export async function drawBox(params: any) {
   }
   for (const [i, textLine] of textLines.entries()) {
     const lastLine = (i == textLines.length - 1 && !settings.footerStr);
-    drawLine(
-             {isBorder: false, lastLine, text: textLine, 
-              addComma: (lastLine ? addComma : true), noEol: lastLine});
+    lineNum = await drawLine(
+             { lineNum, isBorder: false, lastLine, text: textLine, 
+               addComma: (lastLine ? addComma : true), noEol: lastLine });
   }
-  if (settings.footerStr) 
-       drawLine( { isBorder: true, lastLine: true, 
+  if (settings.footerStr) lineNum = 
+       await drawLine( { lineNum, isBorder: true, lastLine: true, 
                          text: settings.footerStr, addComma });
   const haveTextAfter = (textAfter.trim().length > 0);
   let mgnBelow = settings.marginBottom;
   if(!haveTextAfter) 
-      mgnBelow = adjMargin({marginLines: mgnBelow, above: false })-1;
-  for (let i = 0; i < mgnBelow; i++) insertLine({ lineText: '' });
-  if (haveTextAfter) insertLine(
-     { lineText: ' '.repeat(textAfterOfs) + textAfter, noEol: true });
-  const wsEdit = new vscode.WorkspaceEdit();
-  for (const edit of edits) 
-        wsEdit.insert(docUri, new vscode.Position(lineNumber, 0), edit.text);
-  await vscode.workspace.applyEdit(wsEdit);
+      mgnBelow = adjMargin({ lineNum, marginLines: mgnBelow, above: false })-1;
+  for (let i = 0; i < mgnBelow; i++) 
+                         lineNum = await insertLine({ lineNum, lineText: '' });
+  if (haveTextAfter) await insertLine(
+     { lineNum, lineText: ' '.repeat(textAfterOfs) + textAfter, noEol: true });
 }
  
 export async function insertNewBox(document: vscode.TextDocument, point: Point) {
@@ -188,7 +181,7 @@ export async function insertNewBox(document: vscode.TextDocument, point: Point) 
   ///////////////// body of insertNewBox /////////////////
   await prepareForInsertion(point);
   await drawBox({
-    document, lineNumber: lineNum, textLines: [],
+    document, lineNum, textLines: [],
     addComma: !addedComma, textAfter, textAfterOfs
   });
 }
