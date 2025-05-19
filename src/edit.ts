@@ -4,8 +4,13 @@ import * as utils from './utils';
 import { get } from 'http';
 const { log, start, end } = utils.getLog('edit');
 
-const startEditTag    = '<comment>';
-const endEditTag      = '</comment>';
+const startEditTagRegex = new RegExp(`<${utils.oneInvChar}comment>`);
+const endEditTagRegex   = new RegExp(`</comment${utils.oneInvChar}>`);
+
+const startEditTag = `<${utils.num2inv(0)}comment>`;
+function getEndEditTag(hasComma: boolean): string {
+  return `</comment${utils.num2inv(hasComma? 1 : 0)}>`;
+} 
 const backgroundColor: vscode.DecorationRenderOptions = 
                                     { backgroundColor: 'rgba(255,255,0,0.3)' };
 
@@ -49,7 +54,7 @@ interface EditArea {
   endTextChar:    number;
   endChar:        number;
   text:           string;
-  block:          Block;
+  hasComma:       boolean;
   decorationType: vscode.TextEditorDecorationType;
 }
 
@@ -158,32 +163,41 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
            hasTopBorder, hasBottomBorder, hasComma, eol, blocklines };
 }
 
-function getEditArea(document: vscode.TextDocument) : 
-                                          EditArea | null | undefined {
-  const docText = document.getText();
-  const startIdx = docText.indexOf(startEditTag);
-  let startPos : vscode.Position | null = null;
-  if (startIdx === -1) startPos = null;
-  else startPos = document.positionAt(startIdx + startEditTag.length);
-  const endIdx = docText.indexOf(endEditTag);
-  let endPos : vscode.Position | null = null;
-  if (endIdx === -1) endPos = null;
-  else endPos = document.positionAt(endIdx);
-  if(!startPos && !endPos) return undefined;
-  if (endPos && !startPos) {
+function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
+  const document = editor.document;
+  const docText  = document.getText();
+  const startGroups = startEditTagRegex.exec(docText);
+  const endGroups   = endEditTagRegex.exec(docText);
+  if(startGroups  === null && endGroups === null) return undefined;
+  if (startGroups === null && endGroups !== null) {
     log('infoerr', 'JSON Commenter: <comment> tag is missing.');
     return null;
   }
-  if (startPos && !endPos) {
+  if (startGroups !== null && endGroups === null) {
     log('infoerr', 'JSON Commenter: </comment> tag is missing.');
     return null;
   }
+  const startIdx = startGroups!.index;
+  const endIdx   = endGroups!.index;
   if(endIdx < startIdx) {
     log('infoerr', 'JSON Commenter: </comment> is before <comment>.');
     return null;
   }
-  const editText = docText.slice(startIdx, endIdx);
-
+  const startPos = document.positionAt(startIdx + startEditTag.length);
+  const endPos   = document.positionAt(endIdx);
+  const editArea: EditArea = {
+    editor,
+    startLine:      startPos.line,
+    startTextChar:  startPos.character,
+    endLine:        endPos.line,
+    endTextChar:    endPos.character,
+    endChar:        endPos.character,
+    text:           docText.slice(startIdx + startEditTag.length, endIdx),
+    decorationType: vscode.window
+                          .createTextEditorDecorationType(backgroundColor),
+    hasComma:       utils.inv2num(endGroups![0]) == 1,
+  };
+  return editArea;
 }
 
 async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
@@ -201,17 +215,17 @@ async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
     endTextChar:    0,
     endChar:        0,
     text:           block.text,
-    block,
+    hasComma:       block.hasComma,
     decorationType: 
               vscode.window.createTextEditorDecorationType(backgroundColor),
   };
   const blockRange = 
                new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
-  let editStr = startEditTag + block.text + endEditTag;
+  let editStr = startEditTag + block.text + getEndEditTag(block.hasComma);
   const editStrLines   = editStr.split(/\r?\n/);
   editArea.endLine     = block.startLine + editStrLines.length - 1;
   editArea.endChar     = editStrLines[editStrLines.length - 1].length;
-  editArea.endTextChar = editArea.endChar - endEditTag.length;
+  editArea.endTextChar = editArea.endChar - getEndEditTag(block.hasComma).length;
   const wsEdit = new vscode.WorkspaceEdit();
   wsEdit.replace(editor.document.uri, blockRange, 
                    block.eol + editStr + block.eol);
@@ -226,10 +240,10 @@ export async function stopEditing() {
   if (!editArea) return;
   clrDecoration();
   await box.drawBox({
-    document:  editArea.block.document,
-    lineNum:   editArea.block.startLine,
-    textLines: editArea.block.text.split(/\r?\n/),
-    addComma:  editArea.block.hasComma,
+    document:  editArea.editor.document,
+    lineNum:   editArea.startLine,
+    textLines: editArea.text.split(/\r?\n/),
+    addComma:  editArea.hasComma,
     textAfter: '',
     textAfterOfs: 0,
   });
