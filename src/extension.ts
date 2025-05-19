@@ -20,12 +20,12 @@ export async function activate(context: vscode.ExtensionContext) {
     await edit.documentChanged(event);
   });
 
-  const visibleEditorsDisposable = vscode.window.onDidChangeVisibleTextEditors((editors) => {
-    edit.chgVisibleEditors(editors);
+  const visibleEditorsDisposable = vscode.window.onDidChangeVisibleTextEditors(async (editors) => {
+    await edit.chgVisibleEditors(editors);
   });
 
-  const activeEditorDisposable = vscode.window.onDidChangeActiveTextEditor(editor => {
-    edit.stopEditing();
+  const activeEditorDisposable = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+    await edit.stopEditing();
   });
 
 	context.subscriptions.push( registerCommand, textDocumentDisposable, 

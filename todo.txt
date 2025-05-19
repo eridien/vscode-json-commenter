@@ -1,5 +1,5 @@
 bugs ...
-  updateBlock range should cover current edit line text
+  new box inside another box broken
   
 todo ...
   dark theme highlight

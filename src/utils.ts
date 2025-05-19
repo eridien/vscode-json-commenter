@@ -1,18 +1,13 @@
 import vscode     from 'vscode';
 const { log, start, end } = getLog('util');
 
-export const ID_WIDTH = 6;
-
-export const oneInvChar  = '[\u200B\u200C\u200D\u2060]';
+const  zeroWidthChars    =  ['\u200B', '\u200C', '\u200D', '\u2060'];
+export const oneInvChar  = '[' + zeroWidthChars.join('') + ']';
 export const invChrRegEx = new RegExp(oneInvChar);
-export const idRegEx = new RegExp( 
-                          `"(${oneInvChar}{${ID_WIDTH}})${oneInvChar}{2}"`, 'g');
-export const lineRegEx = new RegExp(
-                          `^( *)"(${oneInvChar}{${ID_WIDTH}})(${oneInvChar})` +
-                                `(${oneInvChar})":"(.*?)"(\,?)\s*$`);
-
-
-const zeroWidthChars = ['\u200B', '\u200C', '\u200D', '\u2060'];
+export const idRegEx     = new RegExp( 
+                        `"(${oneInvChar}{6})${oneInvChar}{3}"`, 'g');
+export const lineRegEx = new RegExp(`^( *)"(${oneInvChar}{6})` +
+            `(${oneInvChar})(${oneInvChar})(${oneInvChar})":"(.*?)"(\,?)\s*$`);
 
 export function invBase4ToVisStr(str:String) {
   const digitMap: { [key: string]: string } = {
@@ -82,7 +77,7 @@ export function invBase4ToNumber(str: string) {
 let lastIdNumber = 0;
 
 export function getIdStr(): string {
-  return  numberToInvBase4(++lastIdNumber, ID_WIDTH);
+  return  numberToInvBase4(++lastIdNumber, 6);
 }
 
 export function initIdNumber(document: vscode.TextDocument) {

@@ -1,7 +1,6 @@
 import vscode         from 'vscode';
 import * as parse     from './parse';
 import type { Point } from './parse';
-import * as edit      from './edit';
 import * as utils     from './utils';
 const { log, start, end } = utils.getLog('boxx');
 
@@ -12,17 +11,16 @@ const initialMsgMed   = 'Click here and start typing.';
 const initialMsgShort = 'Click here.';
 
 const settings = {
-    indent: 4,
-    marginTop: 1,
-    marginBottom: 1,
-    padding: 2,
-    width: 40,
-    quoteStr: "'",
-    headerStr: '-',
-    footerStr: '-',
-    beforeClickPos: false,
-  };
-
+  indent: 4,
+  marginTop: 1,
+  marginBottom: 1,
+  padding: 2,
+  width: 40,
+  quoteStr: "'",
+  headerStr: '-',
+  footerStr: '-',
+  beforeClickPos: false,
+};
 const indentStr = ' '.repeat(settings.indent);
 const padStr    = ' '.repeat(settings.padding);
 const fullWidth = settings.width + settings.padding * 2;
@@ -45,16 +43,19 @@ export async function drawBox(params: any) {
 
   async function drawLine(params: any) {
     let { lineNum, isBorder = false, lastLine = false, text = '',
-          addComma = true, noEol = false } = params;
-    let idStr      = utils.getIdStr();
-    let typeStr    = utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0));
-    let paddingStr = utils.num2inv(settings.padding);
+          addComma  = true, noEol = false } = params;
+    let idStr       = utils.getIdStr();
+    let hasBreakStr = utils.num2inv((text.indexOf('\n') != -1) ? 1 : 0);
+    let typeStr     = utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0));
+    let paddingStr  = utils.num2inv(settings.padding);
     if(DBG_IDSTR) {
-      idStr      = utils.invBase4ToVisStr(idStr);
-      typeStr    = utils.invBase4ToVisStr(typeStr);
-      paddingStr = utils.invBase4ToVisStr(paddingStr);
+      idStr       = utils.invBase4ToVisStr(idStr);
+      hasBreakStr = utils.invBase4ToVisStr(hasBreakStr);
+      typeStr     = utils.invBase4ToVisStr(typeStr);
+      paddingStr  = utils.invBase4ToVisStr(paddingStr);
     }
-    let linestr = `${indentStr}"${idStr + typeStr + paddingStr}":"`;
+    text = text.replace(/\r\n.*/, '');
+    let linestr = `${indentStr}"${idStr + hasBreakStr + typeStr + paddingStr}":"`;
     if(isBorder) {
       text ||= '-';
       linestr += text.repeat((fullWidth / text.length) + 1).slice(0, fullWidth);
@@ -110,8 +111,8 @@ export async function drawBox(params: any) {
   if (haveTextAfter) await insertLine(
      { lineNum, lineText: ' '.repeat(textAfterOfs) + textAfter, noEol: true });
 }
-
-export async function insertBox(document: vscode.TextDocument, point: Point) {
+ 
+export async function insertNewBox(document: vscode.TextDocument, point: Point) {
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   const docUri      = document.uri;
   let lineNum       = point.line;
@@ -176,6 +177,8 @@ export async function insertBox(document: vscode.TextDocument, point: Point) {
     }
     await vscode.workspace.applyEdit(wsEdit);
   }
+
+  ///////////////// body of insertNewBox /////////////////
   await prepareForInsertion(point);
   await drawBox({
     document, lineNum, textLines: [],
@@ -229,26 +232,26 @@ export async function openCommand() {
   if(settings.beforeClickPos) {
     if(pointBeforeClick) {
       // log('json Point before click:', pointBeforeClick, clickPos);
-      await insertBox(document, pointBeforeClick);
+      await insertNewBox(document, pointBeforeClick);
       return;
     }
     else if(pointAfterClick) {
       // log('No json point before click, using after:', 
       //              pointBeforeClick, clickPos);
-      await insertBox(document, pointAfterClick);
+      await insertNewBox(document, pointAfterClick);
       return;
     }
   }
   else {
     if(pointAfterClick) {
         // log('Json point after click:', pointAfterClick, clickPos);
-        await insertBox(document, pointAfterClick);
+        await insertNewBox(document, pointAfterClick);
         return;
     }
     if(pointBeforeClick) {
       // log(' No json point after click, using before:', 
       //               pointBeforeClick, clickPos);
-      await insertBox(document, pointBeforeClick);
+      await insertNewBox(document, pointBeforeClick);
       return;
     }
   }
