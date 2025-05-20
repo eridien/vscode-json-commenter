@@ -1,6 +1,4 @@
 bugs ...
-  doc change event during startedit
-  lineToChk
   clrDecoration
 
 todo ...

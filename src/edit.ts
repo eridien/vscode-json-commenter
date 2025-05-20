@@ -57,10 +57,10 @@ interface EditArea {
   endLine:        number;
   text:           string;
   hasComma:       boolean;
-  decorationType: vscode.TextEditorDecorationType;
 }
 
 let editArea: EditArea | null = null;
+let decorationType: vscode.TextEditorDecorationType | null = null;
 
 export function decorateEditArea() {
   if (!editArea) return;
@@ -69,13 +69,16 @@ export function decorateEditArea() {
            lineNum <= editArea.endLine; lineNum++)
       ranges.push(new vscode.Range(lineNum, editArea.startTextChar, 
                                    lineNum, editArea.endTextChar));
-  editArea.editor.setDecorations(editArea.decorationType, ranges);
+  decorationType ??= vscode.window
+                           .createTextEditorDecorationType(backgroundColor);
+  editArea.editor.setDecorations(decorationType, ranges);
 }
 
 function clrDecoration() {
-  if(!editArea) return;
-  editArea.editor.setDecorations(editArea.decorationType, []);
-  editArea.decorationType.dispose();
+  if(!editArea || !decorationType) return;
+  editArea.editor.setDecorations(decorationType, []);
+  decorationType.dispose();
+  decorationType = null;
 }
 
 function getBlockLine(document: vscode.TextDocument, 
@@ -200,8 +203,6 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
     endTextChar:    endPos.character,
     endChar:        endCharPos.character,
     text:           docText.slice(startIdx + startEditTag.length, endIdx),
-    decorationType: vscode.window
-                          .createTextEditorDecorationType(backgroundColor),
     hasComma:       utils.inv2num(endGroups![1]) == 1,
   };
   return editArea;
@@ -225,8 +226,6 @@ async function startEditing(editor: vscode.TextEditor,
     endChar:        0,
     text:           block.text,
     hasComma:       block.hasComma,
-    decorationType: 
-              vscode.window.createTextEditorDecorationType(backgroundColor),
   };
   const blockRange = 
                new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
