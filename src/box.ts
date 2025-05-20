@@ -8,7 +8,7 @@ const DBG_IDSTR = false;
 
 export const blockInitialMsg = 'Click here.';
 
-const settings = {
+export const settings = {
   indent: 4,
   marginTop: 1,
   marginBottom: 1,
@@ -87,9 +87,11 @@ export async function drawBox(params: any)  {
        drawLine({ isBorder: true, lastLine: false, 
                                   text: settings.headerStr, addComma: true });
   if (textLines.length == 0) textLines = [blockInitialMsg];
-  for (const [i, textLine] of textLines.entries()) {
+  for (let [i, textLine] of textLines.entries()) {
     const lastLine = (i == textLines.length - 1 && !settings.footerStr);
-    const hasBreak = (textLines.length > 1 && i < textLines.length - 1);
+    const parts = textLine.split('\x00');
+    textLine = parts[0];
+    const hasBreak = (parts.length > 1);
     drawLine({ isBorder: false, lastLine, text: textLine, hasBreak,
                addComma: (lastLine ? addComma : true), noEol: lastLine });
   }

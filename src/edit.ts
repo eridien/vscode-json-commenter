@@ -169,6 +169,7 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
     }
   }
   text = text.trim();
+  log(text.replace(/\n+/g, '#'));
   return { document, startLine, startTextLine, endTextLine, endLine,
            startPadChar, startTextChar, endTextChar, endPadChar, padLen, text,
            hasTopBorder, hasBottomBorder, hasComma, eol, blocklines };
@@ -260,7 +261,22 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
   log('Editing started.');
 }
 
-// editArea must be up-to-date
+function wordWrap(lineText: string, maxLineLen: number): string[] {
+  const lines: string[] = [];
+  let currentLine = '';
+  lineText = lineText.trim().replace(/\s+/g, ' ');
+  for (const word of lineText.split(' ')) {
+    if (currentLine.length + word.length + 1 > maxLineLen) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine += (currentLine.length > 0 ? ' ' : '') + word;
+    }
+  }
+  lines.push(currentLine);
+  return lines;
+}
+
 export async function stopEditing(editor: vscode.TextEditor) {
   if (!editArea) return;
   clrDecoration();
@@ -272,7 +288,20 @@ export async function stopEditing(editor: vscode.TextEditor) {
   wsEdit.delete(editor.document.uri, editRange);
   const text = editArea.text === editInitialMsg 
                           ? box.blockInitialMsg : editArea.text;
-  const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+  let lines: string[] = [];
+  let longLine = '';
+  for(let line of text.split(/\r?\n/)) {
+    line = line.trim().replace(/\s+/g, ' ');
+    if(line.length == 0) {
+      longLine = longLine.trimEnd() + '\x00';
+      lines = lines.concat(wordWrap(longLine, box.settings.width));
+      longLine = '';
+      continue;
+    }
+    longLine += line + ' ';
+  }
+  if(longLine.length > 0) 
+     lines = lines.concat(wordWrap(longLine, box.settings.width));
   await box.drawBox({
     document:   editor.document,
     lineNumber: editArea.startLine,
@@ -325,7 +354,6 @@ export async function selectionChanged(
       await stopEditing(editor);
       return;
     }
-    log('selectionChanged: no editArea found.');
   }
 }
 
