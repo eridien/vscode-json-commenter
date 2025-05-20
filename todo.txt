@@ -1,13 +1,13 @@
 bugs ...
-  2-line block -> edit mode has large spaces gap
+  typing in box (need doc change support)
+  leading spaces in block lost when going to edit
 
 todo ...
+  text = text.replaceAll(/"/g, settings.quoteStr); 
+  word wrap
   detect and close all edit areas in docs when visible editors change
-  remove decoration
-  put inv chars in comment tags
   dark theme highlight
   set editor.unicodeHighlight.invisibleCharacters
-  text = text.replaceAll(/"/g, settings.quoteStr); 
 
 settings ...
   indent: 4,
