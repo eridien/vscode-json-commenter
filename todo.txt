@@ -1,5 +1,5 @@
 bugs ...
-  clrDecoration
+  2-line block -> edit mode has large spaces gap
 
 todo ...
   detect and close all edit areas in docs when visible editors change

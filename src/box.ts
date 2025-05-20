@@ -42,9 +42,9 @@ export async function drawBox(params: any)  {
 
   function drawLine(params: any) {
     let { isBorder = false, lastLine = false, text = '',
-          addComma  = true, noEol = false } = params;
+          addComma  = true, noEol = false, hasBreak = false } = params;
     let idStr       = utils.getIdStr();
-    let hasBreakStr = utils.num2inv((text.indexOf('\n') != -1) ? 1 : 0);
+    let hasBreakStr = utils.num2inv( hasBreak ? 1 : 0);
     let typeStr     = utils.num2inv((isBorder ? 2 : 0) + (lastLine ? 1 : 0));
     let paddingStr  = utils.num2inv(settings.padding);
     if(DBG_IDSTR) {
@@ -97,7 +97,8 @@ export async function drawBox(params: any)  {
   }
   for (const [i, textLine] of textLines.entries()) {
     const lastLine = (i == textLines.length - 1 && !settings.footerStr);
-    drawLine({ isBorder: false, lastLine, text: textLine, 
+    const hasBreak = (textLines.length > 1 && i < textLines.length - 1);
+    drawLine({ isBorder: false, lastLine, text: textLine, hasBreak,
                addComma: (lastLine ? addComma : true), noEol: lastLine });
   }
   if (settings.footerStr) drawLine( { isBorder: true, lastLine: true, 

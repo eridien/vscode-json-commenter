@@ -156,9 +156,9 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
       hasComma        = blkLine.hasComma;
     }
     if(!blkLine.border) {
-      let blkLineText = blkLine.text;
-      if (blkLine.hasBreak) blkLineText = blkLineText.trimEnd() + eol;
-      else blkLineText += ' ';
+      let blkLineText = blkLine.text.trim();
+      if (blkLine.hasBreak) blkLineText += eol;
+      else                  blkLineText += ' ';
       text += blkLineText;
     }
   }
