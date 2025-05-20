@@ -25,7 +25,7 @@ const indentStr = ' '.repeat(settings.indent);
 const padStr    = ' '.repeat(settings.padding);
 const fullWidth = settings.width + settings.padding * 2;
 
-export async function drawBox(params: any): Promise<vscode.WorkspaceEdit> {
+export async function drawBox(params: any)  {
   let { document, lineNumber: startLine, textLines, addComma = true, 
         textAfter = '', textAfterOfs = 0, wsEdit } = params;
   const doApplyEdit = (wsEdit === undefined);
@@ -111,7 +111,6 @@ export async function drawBox(params: any): Promise<vscode.WorkspaceEdit> {
   if (haveTextAfter) insertLine(
      { lineText: ' '.repeat(textAfterOfs) + textAfter, noEol: true });
   if(doApplyEdit) await vscode.workspace.applyEdit(wsEdit);
-  return wsEdit;
 }
  
 export async function insertNewBox(

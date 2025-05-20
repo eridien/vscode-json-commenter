@@ -251,11 +251,11 @@ export async function stopEditing(editor: vscode.TextEditor) {
   );
   wsEdit.delete(editor.document.uri, editRange);
   await box.drawBox({
-    document:  editor.document,
-    lineNum:   editArea.startLine,
-    textLines: editArea.text.split(/\r?\n/),
-    addComma:  editArea.hasComma,
-    textAfter: '',
+    document:   editor.document,
+    lineNumber: editArea.startLine,
+    textLines:  editArea.text.split(/\r?\n/),
+    addComma:   editArea.hasComma,
+    textAfter:   '',
     textAfterOfs: 0,
     wsEdit
   });
@@ -273,38 +273,50 @@ function inEditArea(pos:vscode.Position): boolean {
   return editRange.contains(pos);
 }
 
-export async function selectionChanged( event:vscode.TextEditorSelectionChangeEvent) {
+export async function selectionChanged( 
+                          event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
   const document = editor.document;
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
     const clickPos = selections[0].active;
     if (!clickPos) return;
-    editArea = getEditArea();
-    if (editArea) {
-      if(editArea.editor.document.uri !== document.uri) return;
-      if (!inEditArea(clickPos)) {
-        await stopEditing();
-        return;
-      }
+    const editAreaNew = getEditArea(editor);
+    if (editAreaNew === undefined) {
       const line = document.lineAt(clickPos.line);
-      if(!line || !utils.invChrRegEx.test(line.text)) {
-        await stopEditing();
+      if(!line || !utils.invChrRegEx.test(line.text))
         return;
-      }
+      const block = getBlock(document, clickPos.line);
+      if (block === null) return;
+      const clickLine = clickPos.line;
+      if (clickLine >= block.startLine && clickLine <= block.endLine) 
+        await startEditing(editor, clickLine);
     }
-    await startEditing(editor, clickPos.line);
-    log('selectionChanged Editing started.');
+    if (editAreaNew === null) {
+      log('selectionChanged: editArea is corrupted.');
+      return;
+    }
+    editArea != editAreaNew;
+    if (!inEditArea(clickPos)) {
+      await stopEditing(editor);
+      return;
+    }
+    const line = document.lineAt(clickPos.line);
+    if(!line || !utils.invChrRegEx.test(line.text)) {
+      await stopEditing(editor);
+      return;
+    }
+    log('selectionChanged: no editArea found.');
   }
 }
 
-export async function documentChanged(event: vscode.TextDocumentChangeEvent) {
+export function documentChanged(event: vscode.TextDocumentChangeEvent) {
   const { document, contentChanges } = event;
   if (contentChanges.length === 0) return;
-  if (!editArea || document.uri !== editArea.editor.document.uri) {
-    await stopEditing();
-    return; 
-  }
+  // if (!editArea || document.uri !== editArea.editor.document.uri) {
+  //   await stopEditing();
+  //   return; 
+  // }
   // if (editArea) {
   //   for (const change of contentChanges) {
   //     const { range, rangeLength, text } = change;
@@ -318,13 +330,10 @@ export async function documentChanged(event: vscode.TextDocumentChangeEvent) {
   // }
 }
 
-export async function chgVisibleEditors(editors: readonly vscode.TextEditor[]) {
+export async function chgVisibleEditors(
+                       editors: readonly vscode.TextEditor[]) {
   if (!editArea) return;
   const docUri = editArea.editor.document.uri;
   let editorIsVisible = false;
-  editors.forEach(editor => {
-    if(editor.document.uri === docUri) editorIsVisible = true;
-  });
-  if(!editorIsVisible) await stopEditing();
+  for (const editor of editors) await stopEditing(editor);
 }
-
