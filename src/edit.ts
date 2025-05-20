@@ -66,9 +66,10 @@ let decorationType: vscode.TextEditorDecorationType | null = null;
 
 export function decorateEditArea() {
   if (!editArea) return;
-  const ranges: vscode.Range[] = [];
-  const range = new vscode.Range(editArea.startTextLine, editArea.startTextChar, 
-                                 editArea.endTextLine,   editArea.endTextChar);
+  const ranges: vscode.Range[] = [
+    new vscode.Range(editArea.startTextLine, editArea.startTextChar,
+                     editArea.endTextLine,   editArea.endTextChar)
+  ];
   decorationType ??= vscode.window
                     .createTextEditorDecorationType(backgroundColor);
   editArea.editor.setDecorations(decorationType, ranges);
@@ -215,7 +216,6 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
 async function startEditing(editor: vscode.TextEditor, 
                             lineNumber: number, block: Block) {
   if (editArea) return;
-  const eol = (editor.document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   if(block === null) {
     log('infoerr', 'Comment is corrupted. Fix it or create a new comment.');
     return;
@@ -235,14 +235,15 @@ async function startEditing(editor: vscode.TextEditor,
   };
   const blockRange = 
                new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
-  let editStr = startEditTag + eol + block.text + eol + 
-                getEndEditTag(block.hasComma);
-  const editStrLines   = editStr.split(/\r?\n/);
+  const editStrLines   = block.text.split(/\r?\n/);
   editArea.endTextLine = block.startLine + editStrLines.length + 1;
   editArea.endLine     = editArea.endTextLine + 1;
+  const eol = block.eol;
   const wsEdit = new vscode.WorkspaceEdit();
-  wsEdit.replace(editor.document.uri, blockRange, 
-                   block.eol + editStr + block.eol);
+  wsEdit.replace(editor.document.uri, blockRange, eol + 
+                  startEditTag                  + eol + 
+                  block.text                    + eol + 
+                  getEndEditTag(block.hasComma) + eol);
   await vscode.workspace.applyEdit(wsEdit);
   decorateEditArea();
   const typePos = new vscode.Position(

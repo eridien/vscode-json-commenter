@@ -3,6 +3,7 @@ bugs ...
   leading spaces in block lost when going to edit
 
 todo ...
+  click here <-> type here
   min width, max width
   text = text.replaceAll(/"/g, settings.quoteStr); 
   word wrap
