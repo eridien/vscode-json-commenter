@@ -4,6 +4,11 @@ import * as utils from './utils';
 import { get } from 'http';
 const { log, start, end } = utils.getLog('edit');
 
+const editInitialMsg = 
+`Enter comment.
+A blank line creates a line break.
+Click outside of this edit area when finished.`;
+
 const startEditTagRegex = new RegExp(`<${utils.oneInvChar}comment>`);
 const endEditTagRegex   = new RegExp(`</comment(${utils.oneInvChar})>`);
 
@@ -213,8 +218,7 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
   return editArea;
 }
 
-async function startEditing(editor: vscode.TextEditor, 
-                            lineNumber: number, block: Block) {
+async function startEditing(editor: vscode.TextEditor, block: Block) {
   if (editArea) return;
   if(block === null) {
     log('infoerr', 'Comment is corrupted. Fix it or create a new comment.');
@@ -235,20 +239,24 @@ async function startEditing(editor: vscode.TextEditor,
   };
   const blockRange = 
                new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
-  const editStrLines   = block.text.split(/\r?\n/);
+  const text = (block.text === box.blockInitialMsg ? editInitialMsg : block.text);
+  const editStrLines   = text.split(/\r?\n/);
   editArea.endTextLine = block.startLine + editStrLines.length + 1;
   editArea.endLine     = editArea.endTextLine + 1;
   const eol = block.eol;
   const wsEdit = new vscode.WorkspaceEdit();
   wsEdit.replace(editor.document.uri, blockRange, eol + 
                   startEditTag                  + eol + 
-                  block.text                    + eol + 
+                  text                          + eol + 
                   getEndEditTag(block.hasComma) + eol);
   await vscode.workspace.applyEdit(wsEdit);
   decorateEditArea();
-  const typePos = new vscode.Position(
-                         editArea.startLine, editArea.startTextChar);
-  editor.selection = new vscode.Selection(typePos, typePos);
+  const startTextPos =
+           new vscode.Position(editArea.startTextLine, editArea.startTextChar);
+  const endTextPos = 
+           new vscode.Position(editArea.endTextLine-1,   
+                               editStrLines[editStrLines.length-1].length);
+  editor.selection = new vscode.Selection(endTextPos, startTextPos);
   log('Editing started.');
 }
 
@@ -262,10 +270,13 @@ export async function stopEditing(editor: vscode.TextEditor) {
     editArea.endLine,   editArea.endChar
   );
   wsEdit.delete(editor.document.uri, editRange);
+  const text = editArea.text === editInitialMsg 
+                          ? box.blockInitialMsg : editArea.text;
+  const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
   await box.drawBox({
     document:   editor.document,
     lineNumber: editArea.startLine,
-    textLines:  editArea.text.split(/\r?\n/),
+    textLines:  lines,
     addComma:   editArea.hasComma,
     textAfter:   '',
     textAfterOfs: 0,
@@ -302,7 +313,7 @@ export async function selectionChanged(
       if (block === null) return;
       const clickLine = clickPos.line;
       if (clickLine >= block.startLine && clickLine <= block.endLine) 
-        await startEditing(editor, clickLine, block);
+        await startEditing(editor, block);
       return;
     }
     if (editAreaNew === null) {
@@ -311,11 +322,6 @@ export async function selectionChanged(
     }
     editArea = editAreaNew;
     if (!inEditArea(clickPos)) {
-      await stopEditing(editor);
-      return;
-    }
-    const line = document.lineAt(clickPos.line);
-    if(!line || !utils.invChrRegEx.test(line.text)) {
       await stopEditing(editor);
       return;
     }

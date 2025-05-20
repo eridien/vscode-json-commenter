@@ -6,9 +6,7 @@ const { log, start, end } = utils.getLog('boxx');
 
 const DBG_IDSTR = false; 
 
-const initialMsgLong  = 'JSON Commenter: Click here and start typing.';
-const initialMsgMed   = 'Click here and start typing.';
-const initialMsgShort = 'Click here.';
+export const blockInitialMsg = 'Click here.';
 
 const settings = {
   indent: 4,
@@ -88,13 +86,7 @@ export async function drawBox(params: any)  {
   if (settings.headerStr) 
        drawLine({ isBorder: true, lastLine: false, 
                                   text: settings.headerStr, addComma: true });
-  if (textLines.length == 0) {
-    let initMsg = initialMsgLong;
-    if(initMsg.length > settings.width) initMsg = initialMsgMed;
-    if(initMsg.length > settings.width) initMsg = initialMsgShort;
-    if(initMsg.length > settings.width) initMsg = '';
-    textLines = [initMsg];
-  }
+  if (textLines.length == 0) textLines = [blockInitialMsg];
   for (const [i, textLine] of textLines.entries()) {
     const lastLine = (i == textLines.length - 1 && !settings.footerStr);
     const hasBreak = (textLines.length > 1 && i < textLines.length - 1);
