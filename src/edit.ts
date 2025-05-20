@@ -5,12 +5,13 @@ import { get } from 'http';
 const { log, start, end } = utils.getLog('edit');
 
 const startEditTagRegex = new RegExp(`<${utils.oneInvChar}comment>`);
-const endEditTagRegex   = new RegExp(`</comment${utils.oneInvChar}>`);
+const endEditTagRegex   = new RegExp(`</comment(${utils.oneInvChar})>`);
 
 const startEditTag = `<${utils.num2inv(0)}comment>`;
 function getEndEditTag(hasComma: boolean): string {
   return `</comment${utils.num2inv(hasComma? 1 : 0)}>`;
 } 
+const endEditTagLen = 11;
 const backgroundColor: vscode.DecorationRenderOptions = 
                                     { backgroundColor: 'rgba(255,255,0,0.3)' };
 
@@ -179,32 +180,37 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
     return null;
   }
   const startIdx = startGroups!.index;
-  const endIdx   = endGroups!.index;
+  let   endIdx   = endGroups!.index;
   if(endIdx < startIdx) {
     log('infoerr', 'JSON Commenter: </comment> is before <comment>.');
     return null;
   }
   const startPos = document.positionAt(startIdx );
   const endPos   = document.positionAt(endIdx);
+  let endCharIdx = endIdx + endEditTagLen;
+  if (docText.slice(endCharIdx, endCharIdx+2) === '\r\n') endCharIdx += 2;
+  if (docText.slice(endCharIdx, endCharIdx+1) ===   '\n') endCharIdx += 1;
+  const endCharPos = document.positionAt(endCharIdx);
   const editArea: EditArea = {
     editor,
     startLine:      startPos.line,
     startChar:      startPos.character,
     startTextChar:  startPos.character + startEditTag.length,
-    endLine:        endPos.line,
+    endLine:        endCharPos.line,
     endTextChar:    endPos.character,
-    endChar:        endPos.character,
+    endChar:        endCharPos.character,
     text:           docText.slice(startIdx + startEditTag.length, endIdx),
     decorationType: vscode.window
                           .createTextEditorDecorationType(backgroundColor),
-    hasComma:       utils.inv2num(endGroups![0]) == 1,
+    hasComma:       utils.inv2num(endGroups![1]) == 1,
   };
   return editArea;
 }
 
-async function startEditing(editor: vscode.TextEditor, lineNumber: number) {
+async function startEditing(editor: vscode.TextEditor, 
+                            lineNumber: number, block: Block) {
   if (editArea) return;
-  const block = getBlock(editor.document, lineNumber);
+  // const block = getBlock(editor.document, lineNumber);
   if(block === null) {
     log('infoerr', 'Comment is corrupted. Fix it or create a new comment.');
     return;
@@ -290,13 +296,14 @@ export async function selectionChanged(
       if (block === null) return;
       const clickLine = clickPos.line;
       if (clickLine >= block.startLine && clickLine <= block.endLine) 
-        await startEditing(editor, clickLine);
+        await startEditing(editor, clickLine, block);
+      return
     }
     if (editAreaNew === null) {
       log('selectionChanged: editArea is corrupted.');
       return;
     }
-    editArea != editAreaNew;
+    editArea = editAreaNew;
     if (!inEditArea(clickPos)) {
       await stopEditing(editor);
       return;
