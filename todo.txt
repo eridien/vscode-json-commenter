@@ -3,6 +3,7 @@ bugs ...
   leading spaces in block lost when going to edit
 
 todo ...
+  min width, max width
   text = text.replaceAll(/"/g, settings.quoteStr); 
   word wrap
   detect and close all edit areas in docs when visible editors change
@@ -14,7 +15,8 @@ settings ...
   marginTop: 2,
   marginBottom: 2,
   padding: 2,
-  width: 40,
+  min width: 30,
+  max width: 60,
   quoteStr: "'",
   headerStr: '-',
   footerStr: '-',

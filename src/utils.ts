@@ -90,12 +90,6 @@ export function initIdNumber(document: vscode.TextDocument) {
   }
 }
 
-/**
- * Clear the entire document
- *
- * @export
- * @param {vscode.TextDocument} document 
- */
 export async function clrDoc(document:vscode.TextDocument) {
   const fullRange = new vscode.Range(
     document.positionAt(0),
@@ -105,8 +99,6 @@ export async function clrDoc(document:vscode.TextDocument) {
   delEdit.delete(document.uri, fullRange);
   await vscode.workspace.applyEdit(delEdit);
 }
-
-const outputChannel = vscode.window.createOutputChannel('json-commenter');
 
 function timeInSecs(ms: number): string {
   return (ms / 1000).toFixed(2);
@@ -142,6 +134,15 @@ export function movePosToEndOfStr(
     return new vscode.Position(newLine, newChar);
   }
 }
+
+export function movePastEol(str: string, index: number, lineNumber: number): 
+                                                           [number, number] {
+  if (str.slice(index, index+2) === '\r\n') {index += 2; lineNumber++;}
+  if (str.slice(index, index+1) ===   '\n') {index += 1; lineNumber++;}
+  return [index, lineNumber];
+}
+
+const outputChannel = vscode.window.createOutputChannel('json-commenter');
 
 export function getLog(module: string) {
   const timers: Record<string, number> = {};
