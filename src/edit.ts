@@ -240,7 +240,15 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
   };
   const blockRange = 
                new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
-  const text = (block.text === box.blockInitialMsg ? editInitialMsg : block.text);
+  let text = '';
+  if(block.text === box.blockInitialMsg) text = editInitialMsg;
+  else {
+    for(const blkLine of block.blocklines) {
+      if(blkLine.border) continue;
+      text += blkLine.text + '\n' + (blkLine.hasBreak ? '\n' : '');
+    }
+  }
+  text = text.trim();
   const editStrLines   = text.split(/\r?\n/);
   editArea.endTextLine = block.startLine + editStrLines.length + 1;
   editArea.endLine     = editArea.endTextLine + 1;
