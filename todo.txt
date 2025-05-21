@@ -1,10 +1,13 @@
 bugs ...
   very slow first box building
+  initial msg toggle broken
+  fake block (pasted comment edit area) isn't live
 
 todo ...
+  pasting file with comment area should "stop editing"
   check for edit area when bad syntax
-  detect and close all edit areas in docs when visible editors change
   min width, max width
+  moving/resizing with mouse dragging
   don't word wrap inside quoted string
   dark theme highlight
   set editor.unicodeHighlight.invisibleCharacters
