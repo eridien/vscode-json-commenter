@@ -2,8 +2,10 @@ bugs ...
   very slow first box building
 
 todo ...
-  min width, max width
+  check for edit area when bad syntax
   detect and close all edit areas in docs when visible editors change
+  min width, max width
+  don't word wrap inside quoted string
   dark theme highlight
   set editor.unicodeHighlight.invisibleCharacters
 

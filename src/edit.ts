@@ -293,17 +293,36 @@ function wordWrap(lineText: string, maxLineLen: number): string[] {
   return lines;
 }
 
+let inStopEditing = false;
+
 export async function stopEditing(editor: vscode.TextEditor) {
-  if (!editArea) return;
-  clrDecoration();
-  const wsEdit = new vscode.WorkspaceEdit();
-  const editRange = new vscode.Range(
-    editArea.startLine, editArea.startChar,
-    editArea.endLine,   editArea.endChar
+  if(inStopEditing) {
+    setTimeout(() => stopEditing(editor), 10);
+    return;
+  }
+  inStopEditing = true;
+  if(!editor && !editArea)  {
+    inStopEditing = false;
+    return;
+  }
+  if(!editor && editArea) {
+    editor = editArea.editor;
+    clrDecoration();
+  }
+  let stopEditArea: EditArea | null | undefined = getEditArea(editor);
+  if(!stopEditArea) {
+    inStopEditing = false;
+    return;
+  }
+  const stopEditor = stopEditArea.editor;
+  const wsEdit     = new vscode.WorkspaceEdit();
+  const editRange  = new vscode.Range(
+    stopEditArea.startLine, stopEditArea.startChar,
+    stopEditArea.endLine,   stopEditArea.endChar
   );
-  wsEdit.delete(editor.document.uri, editRange);
-  let text = editArea.text === editInitialMsg 
-                        ? box.blockInitialMsg : editArea.text;
+  wsEdit.delete(stopEditor.document.uri, editRange);
+  let text = stopEditArea.text === editInitialMsg 
+                            ? box.blockInitialMsg : stopEditArea.text;
   text = text.replaceAll(/"/g, box.settings.quoteStr); 
   let lines: string[] = [];
   let longLine = '';
@@ -320,17 +339,21 @@ export async function stopEditing(editor: vscode.TextEditor) {
   if(longLine.length > 0) 
      lines = lines.concat(wordWrap(longLine, box.settings.width));
   await box.drawBox({
-    document:   editor.document,
-    lineNumber: editArea.startLine,
+    document:   stopEditor.document,
+    lineNumber: stopEditArea.startLine,
     textLines:  lines,
-    addComma:   editArea.hasComma,
+    addComma:   stopEditArea.hasComma,
     textAfter:   '',
     textAfterOfs: 0,
     wsEdit
   });
   await vscode.workspace.applyEdit(wsEdit);
-  editArea = null;
-  log('Editing ended.');
+  if(stopEditArea.editor.document.fileName === 
+        editArea?.editor.document.fileName) {
+    clrDecoration();
+    editArea = null;
+  }
+  inStopEditing = false;
 }
 
 function inEditArea(pos:vscode.Position): boolean {
@@ -396,8 +419,5 @@ export function documentChanged(event: vscode.TextDocumentChangeEvent) {
 
 export async function chgVisibleEditors(
                        editors: readonly vscode.TextEditor[]) {
-  if (!editArea) return;
-  const docUri = editArea.editor.document.uri;
-  let editorIsVisible = false;
   for (const editor of editors) await stopEditing(editor);
 }
