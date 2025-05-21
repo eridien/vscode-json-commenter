@@ -13,7 +13,8 @@ export const settings = {
   marginTop: 1,
   marginBottom: 1,
   padding: 2,
-  width: 40,
+  minWidth: 20,
+  maxWidth: 60,
   quoteStr: "'",
   headerStr: '-',
   footerStr: '-',
@@ -21,9 +22,9 @@ export const settings = {
 };
 const indentStr = ' '.repeat(settings.indent);
 const padStr    = ' '.repeat(settings.padding);
-const fullWidth = settings.width + settings.padding * 2;
 
 export async function drawBox(params: any)  {
+  let fullWidth = settings.maxWidth;
   let { document, lineNumber: startLine, textLines, addComma = true, 
         textAfter = '', textAfterOfs = 0, wsEdit } = params;
   const doApplyEdit = (wsEdit === undefined);
@@ -32,6 +33,11 @@ export async function drawBox(params: any)  {
   const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   utils.initIdNumber(document);
   const startLinePos = new vscode.Position(startLine, 0);
+  fullWidth = settings.minWidth;
+  for(const line of textLines) {
+    if(line.length > fullWidth) fullWidth = line.length;
+  }
+  // fullWidth += settings.padding * 2;
 
   function insertLine(params: any) {
     const {lineText = '', noEol = false} = params;
@@ -53,14 +59,16 @@ export async function drawBox(params: any)  {
     }
     text = text.replace(/\r\n.*/, '');
     let linestr = `${indentStr}"${idStr + hasBreakStr + 
-                                typeStr + paddingStr}":"`;
+                                 typeStr + paddingStr}":"`;
     if(isBorder) {
       text ||= '-';
-      linestr += text.repeat((fullWidth / text.length) + 1)
-                     .slice(0, fullWidth);
+      const width = fullWidth + settings.padding * 2;
+      linestr    += text.repeat((width / text.length) + 1)
+                        .slice(0, width);
     }
     else linestr += padStr + 
-         text.slice(0, settings.width).padEnd(settings.width, ' ') + padStr;   
+         text.slice(0, fullWidth)
+             .padEnd(fullWidth, ' ') + padStr;
     return insertLine({lineText: linestr + '"' + 
                       (addComma ? ',' : ''), noEol });
   }
@@ -96,13 +104,12 @@ export async function drawBox(params: any)  {
                addComma: (lastLine ? addComma : true), noEol: lastLine });
   }
   if (settings.footerStr) drawLine( { isBorder: true, lastLine: true, 
-                         text: settings.footerStr, addComma });
+                                        text: settings.footerStr, addComma });
   const haveTextAfter = (textAfter.trim().length > 0);
   let mgnBelow = settings.marginBottom;
   if(!haveTextAfter) 
       mgnBelow = adjMargin({ marginLines: mgnBelow, above: false })-1;
-  for (let i = 0; i < mgnBelow; i++) 
-                         insertLine({ });
+  for (let i = 0; i < mgnBelow; i++) insertLine({});
   if (haveTextAfter) insertLine(
      { lineText: ' '.repeat(textAfterOfs) + textAfter, noEol: true });
   if(doApplyEdit) await vscode.workspace.applyEdit(wsEdit);

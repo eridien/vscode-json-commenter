@@ -1,11 +1,7 @@
 bugs ...
   very slow first box building
-  block isn't live
 
 todo ...
-  pasting file with comment area should "stop editing"
-  check for edit area when bad syntax
-  min width, max width
   moving/resizing with mouse dragging
   don't word wrap inside quoted string
   dark theme highlight

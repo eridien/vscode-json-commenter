@@ -280,9 +280,8 @@ function wordWrap(lineText: string, maxLineLen: number): string[] {
     lineText    = groups[2];
   }
   const lines: string[] = [];
-  // lineText = lineText.trim().replace(/\s+/g, ' ');
   for (const word of lineText.split(' ')) {
-    if (currentLine.length + word.length + 1 > maxLineLen) {
+    if (currentLine.length + word.length > maxLineLen) {
       lines.push(currentLine);
       currentLine = word;
     } else {
@@ -331,14 +330,14 @@ export async function stopEditing(editor: vscode.TextEditor) {
     line = line.replace(/(?<!^)\s+/g, ' ');
     if(line.length == 0) {
       longLine = longLine.trimEnd() + '\x00';
-      lines = lines.concat(wordWrap(longLine, box.settings.width));
+      lines = lines.concat(wordWrap(longLine, box.settings.maxWidth));
       longLine = '';
       continue;
     }
     longLine += line + ' ';
   }
   if(longLine.length > 0) 
-     lines = lines.concat(wordWrap(longLine, box.settings.width));
+     lines = lines.concat(wordWrap(longLine, box.settings.maxWidth));
   await box.drawBox({
     document:   stopEditor.document,
     lineNumber: stopEditArea.startLine,
