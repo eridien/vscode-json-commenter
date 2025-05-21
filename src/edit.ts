@@ -199,7 +199,7 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
   }
   let startPos      = document.positionAt(startIdx );
   let startTextPos  = document.positionAt(startTextIdx );
-  let startTextLine  = startTextPos.line;
+  let startTextLine = startTextPos.line;
   let endTextPos    = document.positionAt(endTextIdx);
   let endTextLine   = endTextPos.line;
   let endPos        = document.positionAt(endIdx);
@@ -213,7 +213,7 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
     startTextLine,            startTextChar: startTextPos.character, 
     endTextLine,              endTextChar:   endTextPos.character, 
     endLine,                  endChar:       endPos.character,
-    text: docText.slice(startTextIdx, endTextIdx).trim(),
+    text:      docText.slice(startTextIdx, endTextIdx),
     hasComma: (utils.inv2num(endGroups![1]) == 1),
   };
   return editArea;
@@ -239,7 +239,7 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
     hasComma:       block.hasComma,
   };
   const blockRange = 
-               new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
+            new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
   let text = '';
   if(block.text === box.blockInitialMsg) text = editInitialMsg;
   else {
@@ -248,7 +248,6 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
       text += blkLine.text + '\n' + (blkLine.hasBreak ? '\n' : '');
     }
   }
-  text = text.trim();
   const editStrLines   = text.split(/\r?\n/);
   editArea.endTextLine = block.startLine + editStrLines.length + 1;
   editArea.endLine     = editArea.endTextLine + 1;
@@ -270,9 +269,14 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
 }
 
 function wordWrap(lineText: string, maxLineLen: number): string[] {
-  const lines: string[] = [];
+  const groups = /^(\s+)(.*)$/.exec(lineText);
   let currentLine = '';
-  lineText = lineText.trim().replace(/\s+/g, ' ');
+  if(groups) {
+    currentLine = groups[1];
+    lineText    = groups[2];
+  }
+  const lines: string[] = [];
+  // lineText = lineText.trim().replace(/\s+/g, ' ');
   for (const word of lineText.split(' ')) {
     if (currentLine.length + word.length + 1 > maxLineLen) {
       lines.push(currentLine);
@@ -299,7 +303,7 @@ export async function stopEditing(editor: vscode.TextEditor) {
   let lines: string[] = [];
   let longLine = '';
   for(let line of text.split(/\r?\n/)) {
-    line = line.trim().replace(/\s+/g, ' ');
+    line = line.replace(/(?<!^)\s+/g, ' ');
     if(line.length == 0) {
       longLine = longLine.trimEnd() + '\x00';
       lines = lines.concat(wordWrap(longLine, box.settings.width));

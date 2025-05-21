@@ -1,6 +1,5 @@
 bugs ...
-  typing in box (need doc change support)
-  leading spaces in block lost when going to edit
+  very slow first box building
 
 todo ...
   click here <-> type here
