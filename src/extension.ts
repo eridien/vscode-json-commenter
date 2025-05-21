@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 import * as box    from './box';
 import * as edit   from './edit';
 
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 
-  await box.openCommand();  // debug only
+  // await box.openCommand();  // debug only
 
 	const registerCommand = vscode.commands.registerCommand(
             'vscode-json-commenter.open', async () => {

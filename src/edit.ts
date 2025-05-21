@@ -320,8 +320,9 @@ export async function stopEditing(editor: vscode.TextEditor) {
     stopEditArea.startLine, stopEditArea.startChar,
     stopEditArea.endLine,   stopEditArea.endChar
   );
+  
   wsEdit.delete(stopEditor.document.uri, editRange);
-  let text = stopEditArea.text === editInitialMsg 
+  let text = stopEditArea.text.trim() === editInitialMsg 
                             ? box.blockInitialMsg : stopEditArea.text;
   text = text.replaceAll(/"/g, box.settings.quoteStr); 
   let lines: string[] = [];
