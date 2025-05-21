@@ -220,10 +220,14 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
 }
 
 async function startEditing(editor: vscode.TextEditor, block: Block) {
-  if (editArea) return;
-  if(block === null) {
-    log('infoerr', 'Comment is corrupted. Fix it or create a new comment.');
-    return;
+  if (editArea) {
+    const editorEditTest = getEditArea(editor);
+    if (editorEditTest === undefined) editArea = null;
+    else {
+      log('infoerr', 'JSON Commenter: existing <comment> edit block found. ' +
+                     'Please finish it or delete it.');
+      return;
+    }
   }
   editArea = {
     editor:         editor,
