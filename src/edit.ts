@@ -241,13 +241,16 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
   const blockRange = 
             new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
   let text = '';
+  let isNew = true;
   if(block.text === box.blockInitialMsg) text = editInitialMsg;
   else {
+    isNew = false;
     for(const blkLine of block.blocklines) {
       if(blkLine.border) continue;
-      text += blkLine.text + '\n' + (blkLine.hasBreak ? '\n' : '');
+      text += blkLine.text.trimEnd() + '\n' + (blkLine.hasBreak ? '\n' : '');
     }
   }
+  text = text.trimEnd();
   const editStrLines   = text.split(/\r?\n/);
   editArea.endTextLine = block.startLine + editStrLines.length + 1;
   editArea.endLine     = editArea.endTextLine + 1;
@@ -264,7 +267,8 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
   const endTextPos = 
            new vscode.Position(editArea.endTextLine-1,   
                                editStrLines[editStrLines.length-1].length);
-  editor.selection = new vscode.Selection(endTextPos, startTextPos);
+  if (isNew) editor.selection = new vscode.Selection(endTextPos, startTextPos);
+  else     editor.selection = new vscode.Selection(startTextPos, startTextPos);
   log('Editing started.');
 }
 
