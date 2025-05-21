@@ -11,12 +11,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		await box.openCommand();
 	});
 
-  const selectionDisposable = vscode.window.onDidChangeTextEditorSelection(async event => {
-    if (event.textEditor?.document.uri.scheme !== 'file') return;
+  const selectionDisposable = 
+                  vscode.window.onDidChangeTextEditorSelection(async event => {
+    const scheme = event.textEditor?.document?.uri.scheme;
+    if (scheme !== 'file' && scheme !== 'untitled') return;
     await edit.selectionChanged(event);
   });
 
-  const textDocumentDisposable = vscode.workspace.onDidChangeTextDocument(event => {
+  const textDocumentDisposable = 
+                  vscode.workspace.onDidChangeTextDocument(event => {
     edit.documentChanged(event);
   });
 

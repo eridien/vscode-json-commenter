@@ -224,7 +224,7 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
     const editorEditTest = getEditArea(editor);
     if (editorEditTest === undefined) editArea = null;
     else {
-      log('infoerr', 'JSON Commenter: existing <comment> edit block found. ' +
+      log('infoerr', 'JSON Commenter: Existing <comment> edit block found. ' +
                      'Please finish it or delete it.');
       return;
     }
@@ -425,5 +425,4 @@ export function documentChanged(event: vscode.TextDocumentChangeEvent) {
 
 export async function chgVisibleEditors(
                        editors: readonly vscode.TextEditor[]) {
-  for (const editor of editors) await stopEditing(editor);
 }

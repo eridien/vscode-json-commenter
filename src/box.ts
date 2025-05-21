@@ -179,7 +179,6 @@ export async function insertNewBox(
         }
       }
     }
-    // await vscode.workspace.applyEdit(wsEdit);
   }
 
   ///////////////// body of insertNewBox /////////////////
@@ -196,10 +195,6 @@ export async function openCommand() {
   const document   = textEditor?.document;
   if(!document) {
     log('info', 'No active textEditor found.');
-    return;
-  }
-  if(document.languageId !== 'json' && document.languageId !== 'jsonc') {
-    log('info', 'Not a json file.');
     return;
   }
   const clickPos = textEditor?.selection?.active;
