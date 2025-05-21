@@ -2,10 +2,7 @@ bugs ...
   very slow first box building
 
 todo ...
-  click here <-> type here
   min width, max width
-  text = text.replaceAll(/"/g, settings.quoteStr); 
-  word wrap
   detect and close all edit areas in docs when visible editors change
   dark theme highlight
   set editor.unicodeHighlight.invisibleCharacters
