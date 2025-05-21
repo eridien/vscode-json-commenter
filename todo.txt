@@ -1,6 +1,6 @@
 bugs ...
   very slow first box building
-
+  
 todo ...
   moving/resizing with mouse dragging
   don't word wrap inside quoted string

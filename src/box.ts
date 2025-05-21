@@ -125,7 +125,7 @@ export async function insertNewBox(
   let textAfterOfs = 0;
   const wsEdit     = new vscode.WorkspaceEdit();
 
-  async function prepareForInsertion(point: Point) {
+  function prepareForInsertion(point: Point) {
     let curChar  = point.character;
     const pointPos = new vscode.Position(lineNum, curChar);
     const line     = document.lineAt(lineNum);
@@ -179,15 +179,16 @@ export async function insertNewBox(
         }
       }
     }
-    await vscode.workspace.applyEdit(wsEdit);
+    // await vscode.workspace.applyEdit(wsEdit);
   }
 
   ///////////////// body of insertNewBox /////////////////
-  await prepareForInsertion(point);
+  prepareForInsertion(point);
   await drawBox({
     document, lineNumber: lineNum, textLines: [],
-    addComma: !addedComma, textAfter, textAfterOfs
+    addComma: !addedComma, textAfter, textAfterOfs, wsEdit
   });
+  await vscode.workspace.applyEdit(wsEdit);
 }
 
 export async function openCommand() {
