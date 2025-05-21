@@ -268,7 +268,7 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
            new vscode.Position(editArea.endTextLine-1,   
                                editStrLines[editStrLines.length-1].length);
   if (isNew) editor.selection = new vscode.Selection(endTextPos, startTextPos);
-  else     editor.selection = new vscode.Selection(startTextPos, startTextPos);
+  else       editor.selection = new vscode.Selection(startTextPos, startTextPos);
   log('Editing started.');
 }
 
@@ -354,6 +354,8 @@ export async function stopEditing(editor: vscode.TextEditor) {
     clrDecoration();
     editArea = null;
   }
+  const position = editor?.selection.active;
+  if(position) editor.selection = new vscode.Selection(position, position);
   inStopEditing = false;
 }
 

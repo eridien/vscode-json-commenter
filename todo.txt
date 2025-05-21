@@ -1,7 +1,6 @@
 bugs ...
   very slow first box building
-  initial msg toggle broken
-  fake block (pasted comment edit area) isn't live
+  block isn't live
 
 todo ...
   pasting file with comment area should "stop editing"
