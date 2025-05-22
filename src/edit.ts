@@ -243,7 +243,7 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
     hasComma:       block.hasComma,
   };
   const blockRange = 
-            new vscode.Range(block.startLine-1, 0, block.endLine + 1, 0);
+            new vscode.Range(block.startLine, 0, block.endLine + 1, 0);
   let text = '';
   let isNew = true;
   if(block.text === box.blockInitialMsg) text = editInitialMsg;
@@ -260,7 +260,7 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
   editArea.endLine     = editArea.endTextLine + 1;
   const eol = block.eol;
   const wsEdit = new vscode.WorkspaceEdit();
-  wsEdit.replace(editor.document.uri, blockRange, eol + 
+  wsEdit.replace(editor.document.uri, blockRange,
                   startEditTag                  + eol + 
                   text                          + eol + 
                   getEndEditTag(block.hasComma) + eol);
