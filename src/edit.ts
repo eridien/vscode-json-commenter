@@ -1,5 +1,6 @@
 import vscode     from 'vscode';
 import * as box   from './box';
+import * as sett  from './settings';
 import * as utils from './utils';
 import { get } from 'http';
 const { log, start, end } = utils.getLog('edit');
@@ -19,6 +20,7 @@ function getEndEditTag(hasComma: boolean): string {
 const endEditTagLen = 11;
 const backgroundColor: vscode.DecorationRenderOptions = 
                                     { backgroundColor: 'rgba(255,255,0,0.3)' };
+sett.getEditAreaDecorationOptions(box.settings);
 
 interface BlockLine {
   lineLen:    number;
@@ -66,7 +68,7 @@ interface EditArea {
   hasComma:       boolean;
 }
 
-let editArea: EditArea | null = null;
+let editArea:       EditArea                        | null = null;
 let decorationType: vscode.TextEditorDecorationType | null = null;
 
 export function decorateEditArea() {
@@ -75,8 +77,7 @@ export function decorateEditArea() {
     new vscode.Range(editArea.startTextLine, editArea.startTextChar,
                      editArea.endTextLine,   editArea.endTextChar)
   ];
-  decorationType ??= vscode.window
-                    .createTextEditorDecorationType(backgroundColor);
+  decorationType = box.getEditAreaDecorationType();
   editArea.editor.setDecorations(decorationType, ranges);
 }
 
@@ -379,16 +380,16 @@ export async function selectionChanged(
   const document = editor.document;
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
-    const insertionPosition = selections[0].active;
-    if (!insertionPosition) return;
+    const insertPosition = selections[0].active;
+    if (!insertPosition) return;
     const editAreaNew = getEditArea(editor);
     if (editAreaNew === undefined) {
-      const line = document.lineAt(insertionPosition.line);
+      const line = document.lineAt(insertPosition.line);
       if(!line || !utils.invChrRegEx.test(line.text))
         return;
-      const block = getBlock(document, insertionPosition.line);
+      const block = getBlock(document, insertPosition.line);
       if (block === null) return;
-      const clickLine = insertionPosition.line;
+      const clickLine = insertPosition.line;
       if (clickLine >= block.startLine && clickLine <= block.endLine) 
         await startEditing(editor, block);
       return;
@@ -398,7 +399,7 @@ export async function selectionChanged(
       return;
     }
     editArea = editAreaNew;
-    if (!inEditArea(insertionPosition)) {
+    if (!inEditArea(insertPosition)) {
       await stopEditing(editor);
       return;
     }

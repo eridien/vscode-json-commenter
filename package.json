@@ -81,7 +81,7 @@
           "default": "-",
           "description": "String to be repeated for the bottom border of the comment block. Leave empty for no bottom border."
         },
-        "json-commenter.insertionPosition": {
+        "json-commenter.insertPosition": {
           "type": "string",
           "enum": ["Above", "Below"],
           "default": "Above",

@@ -15,6 +15,15 @@ export function refreshSettings() {
   settings = sett.getJsonCommenterSettings();
 }
 
+export function getEditAreaDecorationType(): vscode.TextEditorDecorationType {
+  return vscode.window.createTextEditorDecorationType({
+    backgroundColor: settings.editingBackgroundColor,
+    borderRadius: '2px',
+    border: '1px solid #cccccc',
+    isWholeLine: false,
+  });
+}
+
 const indentStr = ' '.repeat(settings.indent);
 const padStr    = ' '.repeat(settings.padding);
 
@@ -189,8 +198,8 @@ export async function openCommand() {
     log('info', 'No active textEditor found.');
     return;
   }
-  const insertionPosition = textEditor?.selection?.active;
-  if (!insertionPosition) {
+  const insertPosition = textEditor?.selection?.active;
+  if (!insertPosition) {
     log('info', 'No position selected.');
     return;
   }
@@ -208,41 +217,41 @@ export async function openCommand() {
   let pointAfterClick : any = null;
 
   for (const point of points) {
-    if (point.line > insertionPosition.line ||
-        (point.line === insertionPosition.line &&
-          point.character >= insertionPosition.character)) {
+    if (point.line > insertPosition.line ||
+        (point.line === insertPosition.line &&
+          point.character >= insertPosition.character)) {
       pointAfterClick = point;
       break;
     }
-    if (point.line < insertionPosition.line ||
-        (point.line === insertionPosition.line &&
-         point.character <= insertionPosition.character)) {
+    if (point.line < insertPosition.line ||
+        (point.line === insertPosition.line &&
+         point.character <= insertPosition.character)) {
       pointBeforeClick = point;
     }
   }
   
-  if(settings.insertionPosition == 'above') {
+  if(settings.insertPosition == 'above') {
     if(pointBeforeClick) {
-      // log('json Point before click:', pointBeforeClick, insertionPosition);
+      // log('json Point before click:', pointBeforeClick, insertPosition);
       await insertNewBox(document, pointBeforeClick);
       return;
     }
     else if(pointAfterClick) {
       // log('No json point before click, using after:', 
-      //              pointBeforeClick, insertionPosition);
+      //              pointBeforeClick, insertPosition);
       await insertNewBox(document, pointAfterClick);
       return;
     }
   }
   else {
     if(pointAfterClick) {
-        // log('Json point after click:', pointAfterClick, insertionPosition);
+        // log('Json point after click:', pointAfterClick, insertPosition);
         await insertNewBox(document, pointAfterClick);
         return;
     }
     if(pointBeforeClick) {
       // log(' No json point after click, using before:', 
-      //               pointBeforeClick, insertionPosition);
+      //               pointBeforeClick, insertPosition);
       await insertNewBox(document, pointBeforeClick);
       return;
     }
