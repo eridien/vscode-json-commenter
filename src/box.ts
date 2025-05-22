@@ -163,8 +163,8 @@ export async function insertNewBox(
             if(lineNum == 0) startPos = new vscode.Position(0, 0);
             else {
               lineNum--;
-              const lineLen = document.lineAt(lineNum).text.length;
-              startPos = new vscode.Position(lineNum, lineLen);
+              curChar = document.lineAt(lineNum).text.length;
+              startPos = new vscode.Position(lineNum, curChar);
             }
           }
           const remTextRange = new vscode.Range(startPos, endPos);
