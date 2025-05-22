@@ -29,9 +29,9 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   const settingsDisposable = 
-        vscode.workspace.onDidChangeConfiguration(async (event) => {
+        vscode.workspace.onDidChangeConfiguration(event => {
     if (event.affectsConfiguration('json-commenter')) {
-      await edit.settingsChg();
+      box.refreshSettings();
     }
   });
 

@@ -9,7 +9,11 @@ const DBG_IDSTR = false;
 
 export const blockInitialMsg = 'Click here.';
 
-export const settings = sett.getJsonCommenterSettings();
+export let settings = sett.getJsonCommenterSettings();
+
+export function refreshSettings() {
+  settings = sett.getJsonCommenterSettings();
+}
 
 const indentStr = ' '.repeat(settings.indent);
 const padStr    = ' '.repeat(settings.padding);
