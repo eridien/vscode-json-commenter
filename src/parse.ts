@@ -12,7 +12,7 @@ export interface Point {
 }
 
 export function getPoints(document: vscode.TextDocument): Point[] {
-  const jsonText     = document.getText();
+  let   jsonText     = document.getText();
   const jsonLines    = jsonText.split(/\r?\n/);
   const linesInBlock = [] as number[];
   jsonLines.forEach((line, lineNum) => {
@@ -96,8 +96,31 @@ export function getPoints(document: vscode.TextDocument): Point[] {
     return points;
   }
 
+  function stripTrailingComments(text: string): string {
+    return text.split(/\r?\n/).map(line => {
+      let inString = false;
+      let escaped = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"' && !escaped) {
+          inString = !inString;
+        }
+        if (char === '\\' && !escaped) {
+          escaped = true;
+        } else {
+          escaped = false;
+        }
+        if (!inString && char === '/' && line[i + 1] === '/') {
+          return line.slice(0, i);
+        }
+      }
+      return line;
+    }).join('\n');
+  }
+
   let ast: object;
   try {
+    jsonText = stripTrailingComments(jsonText);
     ast = jsonAsty.parse(jsonText);
   } catch (error: any) {
     return [{side: 'infoerr', line: -1, character: 0, epilog: error.message}];
