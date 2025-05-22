@@ -210,9 +210,9 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
   const editArea: EditArea = {
     editor,
     startLine: startPos.line, startChar:     startPos.character, 
-    startTextLine,            startTextChar: startTextPos.character, 
+    startTextLine,            startTextChar: 0, // startTextPos.character, 
     endTextLine,              endTextChar:   endTextPos.character, 
-    endLine,                  endChar:       endPos.character,
+    endLine,                  endChar:       0, //endPos.character,
     text:      docText.slice(startTextIdx, endTextIdx),
     hasComma: (utils.inv2num(endGroups![1]) == 1),
   };
@@ -350,6 +350,7 @@ export async function stopEditing(editor: vscode.TextEditor) {
     addComma:   stopEditArea.hasComma,
     textAfter:   '',
     textAfterOfs: 0,
+    noMgn:        true,
     wsEdit
   });
   await vscode.workspace.applyEdit(wsEdit);

@@ -1,6 +1,5 @@
 bugs ...
   very slow first box building
-  box in untitled is missing bottom border
   
 todo ...
   moving/resizing with mouse dragging

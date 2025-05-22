@@ -27,7 +27,7 @@ export async function drawBox(params: any)  {
   let fullWidth = settings.maxWidth;
   let { document, lineNumber: startLine, curChar: startChar, 
         textLines, addComma = true, 
-        textAfter = '', textAfterOfs = 0, wsEdit } = params;
+        textAfter = '', textAfterOfs = 0, noMgn = false, wsEdit } = params;
   const doApplyEdit = (wsEdit === undefined);
   wsEdit ??= new vscode.WorkspaceEdit();
   const docUri = document.uri;
@@ -89,8 +89,10 @@ export async function drawBox(params: any)  {
   }
 
   ///////////////// body of addbox /////////////////
-  const mgnAbove = adjMargin({ marginLines: settings.marginTop, above: true });
-  for (let i = 0; i < mgnAbove+1; i++) insertLine({ });
+  if(!noMgn) {
+    const mgnAbove = adjMargin({ marginLines: settings.marginTop, above: true });
+    for (let i = 0; i < mgnAbove+1; i++) insertLine({ });
+  }
   if (settings.headerStr) 
        drawLine({ isBorder: true, lastLine: false, 
                                   text: settings.headerStr, addComma: true });
@@ -106,10 +108,12 @@ export async function drawBox(params: any)  {
   if (settings.footerStr) drawLine( { isBorder: true, lastLine: true, 
                                         text: settings.footerStr, addComma });
   const haveTextAfter = (textAfter.trim().length > 0);
-  let mgnBelow = settings.marginBottom;
-  if(!haveTextAfter) 
-      mgnBelow = adjMargin({ marginLines: mgnBelow, above: false })-1;
-  for (let i = 0; i < mgnBelow; i++) insertLine({});
+  if(!noMgn) {
+    let mgnBelow = settings.marginBottom;
+    if(!haveTextAfter) 
+        mgnBelow = adjMargin({ marginLines: mgnBelow, above: false })-1;
+    for (let i = 0; i < mgnBelow; i++) insertLine({});
+  }
   if (haveTextAfter) insertLine(
      { lineText: ' '.repeat(textAfterOfs) + textAfter, noEol: true });
   if(doApplyEdit) await vscode.workspace.applyEdit(wsEdit);
