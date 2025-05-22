@@ -12,9 +12,10 @@ export interface Point {
 }
 
 export function getPoints(document: vscode.TextDocument): Point[] {
-  let   jsonText     = document.getText();
-  const jsonLines    = jsonText.split(/\r?\n/);
-  const linesInBlock = [] as number[];
+  let   strippedLineCount = 0;
+  let   jsonText          = document.getText();
+  const jsonLines         = jsonText.split(/\r?\n/);
+  const linesInBlock      = [] as number[];
   jsonLines.forEach((line, lineNum) => {
     if(utils.invChrRegEx.test(line)) linesInBlock.push(lineNum);
   });
@@ -32,11 +33,17 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         if(depth < lastDepth) left = false;
         lastDepth = depth;
 
+        function addPoint( params: {side: string, line: number, 
+                                    character: number, epilog: string} ) {
+          const {side, line, character, epilog} = params;
+          if(!linesInBlock.includes(node.L.L))
+            points.push({side, line: line + strippedLineCount, character, epilog});
+        }
+
         if(node.T === "object" && when === 'upward') {
           if(Array.isArray(node.C) && node.C.length === 0) {
             // log('Empty object', node, when, json.length);
-            if(!linesInBlock.includes(node.L.L))
-              points.push({side: 'both', line: node.L.L-1, 
+            addPoint({side: 'both', line: node.L.L-1, 
                            character: node.L.C, epilog:  node.get("epilog")});
           }
           else {
@@ -44,8 +51,7 @@ export function getPoints(document: vscode.TextDocument): Point[] {
               //log('upward object with } in epilog', node, when, json.length);
               let pos = document.positionAt(json.length);
               pos = utils.movePosToAfterPrevChar(document, pos);
-              if(!linesInBlock.includes(node.L.L))
-                points.push({side: 'right', line: pos.line,
+              addPoint({side: 'right', line: pos.line,
                         character: pos.character, epilog: node.get("epilog")});
               left = true;
             }
@@ -56,14 +62,12 @@ export function getPoints(document: vscode.TextDocument): Point[] {
           let pos = document.positionAt(json.length);
           pos = utils.movePosToAfterPrevChar(document, pos);
           if(left) {
-            if(!linesInBlock.includes(pos.line)) 
-              points.push({side: 'left', line: pos.line, 
+              addPoint({side: 'left', line: pos.line, 
                            character: pos.character, epilog: ''});
             left = false;
           } 
           else {
-            if(!linesInBlock.includes(pos.line)) 
-              points.push({side: 'right', line: pos.line, 
+            addPoint({side: 'right', line: pos.line, 
                 character: pos.character, epilog: node.get("epilog")});
             left = true;
           }
@@ -96,8 +100,9 @@ export function getPoints(document: vscode.TextDocument): Point[] {
     return points;
   }
 
-  function stripTrailingComments(text: string): string {
-    return text.split(/\r?\n/).map(line => {
+  function stripTrailingComments(text: string): [string, number] {
+    let strippedLineCount = 0;
+    const resStr = text.split(/\r?\n/).map(line => {
       let inString = false;
       let escaped = false;
       for (let i = 0; i < line.length; i++) {
@@ -111,16 +116,18 @@ export function getPoints(document: vscode.TextDocument): Point[] {
           escaped = false;
         }
         if (!inString && char === '/' && line[i + 1] === '/') {
+          strippedLineCount++;
           return line.slice(0, i);
         }
       }
       return line;
     }).join('\n');
+    return [resStr, strippedLineCount];
   }
 
   let ast: object;
   try {
-    jsonText = stripTrailingComments(jsonText);
+    [jsonText, strippedLineCount] = stripTrailingComments(jsonText);
     ast = jsonAsty.parse(jsonText);
   } catch (error: any) {
     return [{side: 'infoerr', line: -1, character: 0, epilog: error.message}];

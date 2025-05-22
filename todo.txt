@@ -1,9 +1,15 @@
 bugs ...
   .vscode/bookmarks.json 2 mgn above
+  launch.json ...
+    after: "args": [
+    after: "version": "0.2.0",
+  in .vscode/settings.json, end of { in line 1 ...
+    {
+    // l;kfnv;lskdvn
+      "workbench.colorCustomizations": {
 
 todo ...
-  ignore // comments
-  
+
 unlikely ...
   moving/resizing with mouse dragging
   don't word wrap inside quoted string
