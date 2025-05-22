@@ -1,24 +1,14 @@
 bugs ...
-  very slow first box building
 
 todo ...
+  support color setting
+  sanity checks for settings
+  dark theme highlight
+
+unlikely ...
   moving/resizing with mouse dragging
   don't word wrap inside quoted string
-  dark theme highlight
   set editor.unicodeHighlight.invisibleCharacters
-
-settings ...
-  indent: 4,
-  marginTop: 2,
-  marginBottom: 2,
-  padding: 2,
-  min width: 30,
-  max width: 60,
-  quoteStr: "'",
-  headerStr: '-',
-  footerStr: '-',
-  beforeClickPos: false,
-  editing highlight color
 
 works in ...
   package.json

@@ -1,6 +1,6 @@
 {
-  "name": "vscode-json-commenter",
-  "displayName": "Vscode JSON commenter",
+  "name": "json-commenter",
+  "displayName": "JSON commenter",
   "description": "Add inline comments to JSON keeping valid syntax.",
   "version": "0.0.1",
   "engines": {
@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/eridien/vscode-json-commenter"
+    "url": "https://github.com/eridien/json-commenter"
   },
   "publisher": "eridien",
   "activationEvents": [
@@ -21,17 +21,81 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-json-commenter.open",
+        "command": "json-commenter.new",
         "title": "Open Comment Edit Mode"
       }
     ],
     "keybindings": [
       {
-        "command": "vscode-json-commenter.open",
+        "command": "json-commenter.new",
         "key": "ctrl+alt+'",
         "when": "editorTextFocus"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "JSON Commenter",
+      "properties": {
+        "json-commenter.indent": {
+          "type": "number",
+          "default": 4,
+          "description": "Number of spaces to the left of the comment block."
+        },
+        "json-commenter.marginTop": {
+          "type": "number",
+          "default": 1,
+          "description": "Number of blank lines as margin above the comment block."
+        },
+        "json-commenter.marginBottom": {
+          "type": "number",
+          "default": 1,
+          "description": "Number of blank lines as margin below the comment block."
+        },
+        "json-commenter.padding": {
+          "type": "number",
+          "default": 2,
+          "description": "Number of spaces padding the sides of the text in the comment block."
+        },
+        "json-commenter.minWidth": {
+          "type": "number",
+          "default": 20,
+          "description": "Minimum width of the text area in the comment block."
+        },
+        "json-commenter.maxWidth": {
+          "type": "number",
+          "default": 60,
+          "description": "Maximum width of the text area in the comment block. Words will wrap here."
+        },
+        "json-commenter.quoteString": {
+          "type": "string",
+          "default": "'",
+          "description": "Quote character replacement string."
+        },
+        "json-commenter.headerString": {
+          "type": "string",
+          "default": "-",
+          "description": "String to be repeated for the top border of the comment block. Leave empty for no top border."
+        },
+        "json-commenter.footerString": {
+          "type": "string",
+          "default": "-",
+          "description": "String to be repeated for the bottom border of the comment block. Leave empty for no bottom border."
+        },
+        "json-commenter.insertionPosition": {
+          "type": "string",
+          "enum": ["Above", "Below"],
+          "default": "Above",
+          "description": "Insert the comment at the first valid position above or below the click."
+        },
+        "json-commenter.editingBackgroundColor": {
+          "type": "string",
+          "format": "color-hex",
+          "scope": "resource",
+          "default": "#ffff99",
+          "description": "Background color used to highlight the comment editing area. Accepts any valid CSS color."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

@@ -327,7 +327,7 @@ export async function stopEditing(editor: vscode.TextEditor) {
   wsEdit.delete(stopEditor.document.uri, editRange);
   let text = stopEditArea.text.trim() === editInitialMsg 
                             ? box.blockInitialMsg : stopEditArea.text;
-  text = text.replaceAll(/"/g, box.settings.quoteStr); 
+  text = text.replaceAll(/"/g, box.settings.quoteString); 
   let lines: string[] = [];
   let longLine = '';
   for(let line of text.split(/\r?\n/)) {
@@ -379,16 +379,16 @@ export async function selectionChanged(
   const document = editor.document;
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
-    const clickPos = selections[0].active;
-    if (!clickPos) return;
+    const insertionPosition = selections[0].active;
+    if (!insertionPosition) return;
     const editAreaNew = getEditArea(editor);
     if (editAreaNew === undefined) {
-      const line = document.lineAt(clickPos.line);
+      const line = document.lineAt(insertionPosition.line);
       if(!line || !utils.invChrRegEx.test(line.text))
         return;
-      const block = getBlock(document, clickPos.line);
+      const block = getBlock(document, insertionPosition.line);
       if (block === null) return;
-      const clickLine = clickPos.line;
+      const clickLine = insertionPosition.line;
       if (clickLine >= block.startLine && clickLine <= block.endLine) 
         await startEditing(editor, block);
       return;
@@ -398,7 +398,7 @@ export async function selectionChanged(
       return;
     }
     editArea = editAreaNew;
-    if (!inEditArea(clickPos)) {
+    if (!inEditArea(insertionPosition)) {
       await stopEditing(editor);
       return;
     }

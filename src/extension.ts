@@ -7,7 +7,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await box.openCommand();  // debug only
 
 	const registerCommand = vscode.commands.registerCommand(
-            'vscode-json-commenter.open', async () => {
+            'json-commenter.new', async () => {
 		await box.openCommand();
 	});
 
