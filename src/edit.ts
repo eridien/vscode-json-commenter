@@ -18,9 +18,6 @@ function getEndEditTag(hasComma: boolean): string {
   return `</comment${utils.num2inv(hasComma? 1 : 0)}>`;
 } 
 const endEditTagLen = 11;
-const backgroundColor: vscode.DecorationRenderOptions = 
-                                    { backgroundColor: 'rgba(255,255,0,0.3)' };
-sett.getEditAreaDecorationOptions(box.settings);
 
 interface BlockLine {
   lineLen:    number;
@@ -380,16 +377,16 @@ export async function selectionChanged(
   const document = editor.document;
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
-    const insertPosition = selections[0].active;
-    if (!insertPosition) return;
+    const insertPos = selections[0].active;
+    if (!insertPos) return;
     const editAreaNew = getEditArea(editor);
     if (editAreaNew === undefined) {
-      const line = document.lineAt(insertPosition.line);
+      const line = document.lineAt(insertPos.line);
       if(!line || !utils.invChrRegEx.test(line.text))
         return;
-      const block = getBlock(document, insertPosition.line);
+      const block = getBlock(document, insertPos.line);
       if (block === null) return;
-      const clickLine = insertPosition.line;
+      const clickLine = insertPos.line;
       if (clickLine >= block.startLine && clickLine <= block.endLine) 
         await startEditing(editor, block);
       return;
@@ -399,7 +396,7 @@ export async function selectionChanged(
       return;
     }
     editArea = editAreaNew;
-    if (!inEditArea(insertPosition)) {
+    if (!inEditArea(insertPos)) {
       await stopEditing(editor);
       return;
     }

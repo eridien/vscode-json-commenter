@@ -1,11 +1,6 @@
 bugs ...
-  above broken
-  
+
 todo ...
-  handle setting changes
-  support color setting
-  sanity checks for settings
-  dark theme highlight
 
 unlikely ...
   moving/resizing with mouse dragging

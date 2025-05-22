@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as utils     from './utils';
 const { log, start, end } = utils.getLog('sett');
 
-export type InsertPosition = 'above' | 'below';
+export type InsertPosition = 'Above' | 'Below';
 
 export interface JsonCommenterSettings {
   indent:                 number;
@@ -29,24 +29,13 @@ export function getJsonCommenterSettings(): JsonCommenterSettings {
     indent:              mm(config.get<number>('indent', 4),      60),
     marginTop:           mm(config.get<number>('marginTop', 1),    6),
     marginBottom:        mm(config.get<number>('marginBottom', 1), 6),
-    padding:             mm(config.get<number>('padding', 2),     10),
+    padding:             mm(config.get<number>('padding', 2),      3),
     minWidth:            mm(config.get<number>('minWidth', 20),  200, 20),
     maxWidth:            mm(config.get<number>('maxWidth', 60),  200, 20),
     quoteString:            config.get<string>('quoteString',  "'"),
     headerString:           config.get<string>('headerString', '-'),
     footerString:           config.get<string>('footerString', '-'),
-    insertPosition:         config.get<InsertPosition>('insertPosition', 'above'),
+    insertPosition:         config.get<InsertPosition>('insertPosition', 'Above'),
     editingBackgroundColor: config.get<string>('editingBackgroundColor', '#ffffcc'),
   };
 }
-
-export function getEditAreaDecorationOptions(settings: JsonCommenterSettings):
-                                             vscode.DecorationRenderOptions {
-  return {
-    backgroundColor: settings.editingBackgroundColor,
-    borderRadius: '2px',
-    border: '1px solid #cccccc',
-    isWholeLine: false,
-  };
-}
-
