@@ -345,6 +345,7 @@ export async function stopEditing(editor: vscode.TextEditor) {
   await box.drawBox({
     document:   stopEditor.document,
     lineNumber: stopEditArea.startLine,
+    curChar:    stopEditArea.startChar,
     textLines:  lines,
     addComma:   stopEditArea.hasComma,
     textAfter:   '',
