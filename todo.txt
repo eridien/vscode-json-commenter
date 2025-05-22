@@ -1,7 +1,9 @@
 bugs ...
+  .vscode/bookmarks.json 2 mgn above
 
 todo ...
-
+  ignore // comments
+  
 unlikely ...
   moving/resizing with mouse dragging
   don't word wrap inside quoted string
@@ -10,8 +12,11 @@ unlikely ...
 works in ...
   package.json
   package-lock.json
-  .vscode/settings.json
   .vscode/launch.json
 
 doesn't work in ...
   bookmarks.json, comments cleared on reboot
+  .vscode/settings.json   comments give invalid json
+
+npm install -g @vscode/vsce
+vsce package
