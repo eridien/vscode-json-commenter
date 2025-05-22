@@ -35,11 +35,3 @@ export function getJsonCommenterSettings(): JsonCommenterSettings {
     editingBackgroundColor: config.get<string>('editingBackgroundColor', '#ffff99'),
   };
 }
-
-export function onJsonCommenterSettingsChanged(callback: () => void): vscode.Disposable {
-  return vscode.workspace.onDidChangeConfiguration(event => {
-    if (event.affectsConfiguration('json-commenter')) {
-      callback();
-    }
-  });
-}

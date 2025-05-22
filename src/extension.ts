@@ -18,12 +18,8 @@ export async function activate(context: vscode.ExtensionContext) {
     await edit.selectionChanged(event);
   });
 
-  const textDocumentDisposable = 
-                  vscode.workspace.onDidChangeTextDocument(event => {
-    edit.documentChanged(event);
-  });
-
-  const visibleEditorsDisposable = vscode.window.onDidChangeVisibleTextEditors(async (editors) => {
+  const visibleEditorsDisposable = 
+        vscode.window.onDidChangeVisibleTextEditors(async (editors) => {
     await edit.chgVisibleEditors(editors);
   });
 
@@ -32,8 +28,16 @@ export async function activate(context: vscode.ExtensionContext) {
     if(editor) await edit.stopEditing(editor);
   });
 
-	context.subscriptions.push( registerCommand, textDocumentDisposable, 
-                              selectionDisposable, visibleEditorsDisposable, activeEditorDisposable );
+  const settingsDisposable = 
+        vscode.workspace.onDidChangeConfiguration(async (event) => {
+    if (event.affectsConfiguration('json-commenter')) {
+      await edit.settingsChg();
+    }
+  });
+
+	context.subscriptions.push( registerCommand, settingsDisposable, 
+                              selectionDisposable, visibleEditorsDisposable,
+                              activeEditorDisposable );
 }
 
 export function deactivate() {}

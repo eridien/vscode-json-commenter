@@ -405,26 +405,9 @@ export async function selectionChanged(
   }
 }
 
-export function documentChanged(event: vscode.TextDocumentChangeEvent) {
-  const { document, contentChanges } = event;
-  if (contentChanges.length === 0) return;
-  // if (!editArea || document.uri !== editArea.editor.document.uri) {
-  //   await stopEditing();
-  //   return; 
-  // }
-  // if (editArea) {
-  //   for (const change of contentChanges) {
-  //     const { range, rangeLength, text } = change;
-  //     if (rangeLength === 0 && text.length === 0) continue;
-  //     if (range.start.line < editArea.startLine ||
-  //         range.end.line   > editArea.endLine) {
-  //       await stopEditing();
-  //       return;
-  //     }
-  //   }
-  // }
-}
-
 export async function chgVisibleEditors(
                        editors: readonly vscode.TextEditor[]) {
+}
+
+export async function settingsChg() {
 }
