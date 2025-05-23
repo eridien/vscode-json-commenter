@@ -48,9 +48,21 @@ export function getPoints(document: vscode.TextDocument): Point[] {
     let json = "";
     const points: Point[] = [];
     let lastDepth = 0;
+    let firstNode = true;
     try {
       ast.walk((node: any, depth: number, parent: any, when: string) => {
         // console.log('node', {node, depth, when});
+        let prolog = node.get("prolog");
+        if(firstNode && prolog !== undefined) {
+          const plLines = prolog.split(/\r?\n/);
+          prolog = "";
+          for(let line of plLines) {
+            if(line === ',') prolog += eol;
+            else             prolog += line + eol;
+          }
+          prolog = prolog.slice(0, -eol.length);
+        }
+        firstNode = false;
         if(depth > lastDepth) left = true;
         if(depth < lastDepth) left = false;
         lastDepth = depth;
@@ -91,9 +103,7 @@ export function getPoints(document: vscode.TextDocument): Point[] {
             left = true;
           }
         }
-
         if (when === "downward") {
-          const prolog = node.get("prolog");
           if (prolog !== undefined) {
             json += prolog;
           }
