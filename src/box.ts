@@ -229,7 +229,6 @@ export async function openCommand() {
       pointBeforeClick = point;
     }
   }
-  console.log('settings.insertPosition:', settings.insertPosition);
   if(settings.insertPosition == 'Above') {
     if(pointBeforeClick) {
       // log('json Point before click:', pointBeforeClick, insertPos);

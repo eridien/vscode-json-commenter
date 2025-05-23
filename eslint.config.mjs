@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url)); // Define __dirn
 
 export default [{
     files: ["**/src/*.ts"],
+    ignores: ["**", "!**/src/*.ts"],
     plugins: {
         "@typescript-eslint": typescriptEslint,
     },
