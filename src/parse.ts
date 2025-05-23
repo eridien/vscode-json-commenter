@@ -11,36 +11,39 @@ export interface Point {
   epilog: string; 
 }
 
-function stripTrailingComments(text: string, eol: string): string {
-  return text.split(/\r?\n/).map(line => {
-    let inString = false;
-    let escaped = false;
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"' && !escaped) {
-        inString = !inString;
-      }
-      if (char === '\\' && !escaped) {
-        escaped = true;
-      } else {
-        escaped = false;
-      }
-      if (!inString && char === '/' && line[i + 1] === '/') {
-        return line.slice(0, i);
-      }
-    }
-    return line;
-  }).join(eol);
-}
-
 export function getPoints(document: vscode.TextDocument): Point[] {
   const eol = document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n';
+  let commentCharCount = 0;
   const jsonText     = stripTrailingComments(document.getText(), eol);
   const jsonLines    = jsonText.split(/\r?\n/);
   const linesInBlock = [] as number[];
   jsonLines.forEach((line, lineNum) => {
     if(utils.invChrRegEx.test(line)) linesInBlock.push(lineNum);
   });
+
+  function stripTrailingComments(text: string, eol: string): string {
+    return text.split(/\r?\n/).map(line => {
+      let inString = false;
+      let escaped = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"' && !escaped) {
+          inString = !inString;
+        }
+        if (char === '\\' && !escaped) {
+          escaped = true;
+        } else {
+          escaped = false;
+        }
+        if (!inString && char === '/' && line[i + 1] === '/') {
+          commentCharCount += line.length - i;
+          return line.slice(0, i);
+        }
+      }
+      return line;
+    }).join(eol);
+  }
+
   let left = true;
   function jsonAstWalk(ast: any): Point[]  {
     if (typeof ast !== "object")
@@ -77,7 +80,7 @@ export function getPoints(document: vscode.TextDocument): Point[] {
           else {
             if(node.A.epilog.indexOf('}') !== -1) {
               //log('upward object with } in epilog', node, when, json.length);
-              let pos = document.positionAt(json.length);
+              let pos = document.positionAt(json.length + commentCharCount);
               pos = utils.movePosToAfterPrevChar(document, pos);
               if(!linesInBlock.includes(node.L.L))
                 points.push({side: 'right', line: pos.line,
@@ -88,7 +91,7 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         }
 
         if(node.T === "member") {
-          let pos = document.positionAt(json.length);
+          let pos = document.positionAt(json.length + commentCharCount);
           pos = utils.movePosToAfterPrevChar(document, pos);
           if(left) {
             if(!linesInBlock.includes(pos.line)) 
