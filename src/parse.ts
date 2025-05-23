@@ -51,11 +51,6 @@ export function getPoints(document: vscode.TextDocument): Point[] {
     try {
       ast.walk((node: any, depth: number, parent: any, when: string) => {
         // console.log('node', {node, depth, when});
-        console.log(node.A.prolog.charCodeAt(0));
-        console.log(node.A.prolog.charCodeAt(1));
-        console.log(node.A.prolog.charCodeAt(2));
-        console.log(node.A.prolog.charCodeAt(3));
-
         if(depth > lastDepth) left = true;
         if(depth < lastDepth) left = false;
         lastDepth = depth;
@@ -126,7 +121,7 @@ export function getPoints(document: vscode.TextDocument): Point[] {
 
   let ast: object;
   try {
-    ast = jsonAsty.parse('\n\n{"a":1}');
+    ast = jsonAsty.parse(jsonText);
   } catch (error: any) {
     return [{side: 'infoerr', line: -1, character: 0, epilog: error.message}];
   }
