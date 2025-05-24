@@ -6,10 +6,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   // await box.openCommand();  // debug only
 
-	const registerCommand = vscode.commands.registerCommand(
+  const registerCommand = vscode.commands.registerCommand(
             'json-commenter.new', async () => {
-		await box.openCommand();
-	});
+    await box.openCommand();
+  });
 
   const selectionDisposable = 
                   vscode.window.onDidChangeTextEditorSelection(async event => {
@@ -19,14 +19,15 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   const visibleEditorsDisposable = 
-        vscode.window.onDidChangeVisibleTextEditors(async (editors) => {
-    await edit.chgVisibleEditors(editors);
+        vscode.window.onDidChangeVisibleTextEditors((editors) => {
+    edit.chgVisibleEditors(editors);
   });
 
   const activeEditorDisposable = 
-             vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+             vscode.window.onDidChangeActiveTextEditor(async editor => {
     if(editor) await edit.stopEditing(editor);
   });
+
 
   const settingsDisposable = 
         vscode.workspace.onDidChangeConfiguration(event => {
@@ -35,8 +36,14 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-	context.subscriptions.push( registerCommand, settingsDisposable, 
-                              selectionDisposable, visibleEditorsDisposable,
+  // Listen for document content changes
+  const docContentChangeDisposable = vscode.workspace
+                      .onDidChangeTextDocument(event => {
+    edit.docContentChanged();
+  });
+
+  context.subscriptions.push( registerCommand, settingsDisposable, 
+                              selectionDisposable,docContentChangeDisposable, visibleEditorsDisposable,
                               activeEditorDisposable );
 }
 

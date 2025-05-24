@@ -377,6 +377,7 @@ export async function selectionChanged(
   const document = editor.document;
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
+    if(editArea) clrDecoration();
     const insertPos = selections[0].active;
     if (!insertPos) return;
     const editAreaNew = getEditArea(editor);
@@ -403,9 +404,11 @@ export async function selectionChanged(
   }
 }
 
-export async function chgVisibleEditors(
+export function chgVisibleEditors(
                        editors: readonly vscode.TextEditor[]) {
+  if(editArea) clrDecoration();
 }
 
-export async function settingsChg() {
+export function docContentChanged() {
+  if(editArea) clrDecoration();
 }
