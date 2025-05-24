@@ -142,17 +142,6 @@ export function movePastEol(str: string, index: number, lineNumber: number):
   return [index, lineNumber];
 }
 
-export function getTabSize(editor: vscode.TextEditor): number {
-  if (editor) {
-    const tabSize = editor.options.tabSize;
-    if (typeof tabSize === 'number') return tabSize;
-  }
-  else return 2;
-  const document = editor.document;
-  const config = vscode.workspace.getConfiguration('editor', document.uri);
-  return config.get<number>('tabSize', 2);
-}
-
 const outputChannel = vscode.window.createOutputChannel('json-commenter');
 
 export function getLog(module: string) {

@@ -41,16 +41,12 @@ function eraseComments(jsonText: string): string {
 export function getPoints(editor: vscode.TextEditor): Point[] {
   const document     = editor.document;
   const eol          = document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n';
-  // const tabSize      = utils.getTabSize(editor);
   const jsonText     = eraseComments(document.getText());
   const jsonLines    = jsonText.split(/\r?\n/);
   const linesInBlock = [] as number[];
   jsonLines.forEach((line, lineNum) => {
     if(utils.invChrRegEx.test(line)) linesInBlock.push(lineNum);
   });
-
-  // const docText = document.getText().replaceAll(/\t/g, ' '.repeat(tabSize));
-
   let left = true;
   function jsonAstWalk(ast: any): Point[]  {
     if (typeof ast !== "object")
