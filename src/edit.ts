@@ -365,8 +365,8 @@ export async function stopEditing(editor: vscode.TextEditor) {
 function inEditArea(pos:vscode.Position): boolean {
   if (!editArea) return false;
   const editRange = new vscode.Range(
-    editArea.startLine, editArea.startTextChar,
-    editArea.endLine,   editArea.endTextChar
+    editArea.startTextLine, editArea.startTextChar,
+    editArea.endTextLine,   editArea.endTextChar
   );
   return editRange.contains(pos);
 }
