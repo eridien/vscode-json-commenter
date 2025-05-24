@@ -204,7 +204,7 @@ export async function openCommand() {
     return;
   }
 
-  const points = parse.getPoints(document);
+  const points = parse.getPoints(textEditor);
   if (points.length === 0) {
     log('info', 'No object found to place comment in.');
     return;

@@ -11,15 +11,19 @@ export interface Point {
   epilog: string; 
 }
 
-export function getPoints(document: vscode.TextDocument): Point[] {
-  const eol = document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n';
-  let commentCharCount = 0;
+export function getPoints(editor: vscode.TextEditor): Point[] {
+  const document     = editor.document;
+  const eol          = document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n';
+  const tabSize      = utils.getTabSize(editor);
+  let textOfsCount   = 0;
   const jsonText     = stripTrailingComments(document.getText(), eol);
   const jsonLines    = jsonText.split(/\r?\n/);
   const linesInBlock = [] as number[];
   jsonLines.forEach((line, lineNum) => {
     if(utils.invChrRegEx.test(line)) linesInBlock.push(lineNum);
   });
+
+  // const docText = document.getText().replaceAll(/\t/g, ' '.repeat(tabSize));
 
   function stripTrailingComments(text: string, eol: string): string {
     return text.split(/\r?\n/).map(line => {
@@ -36,7 +40,7 @@ export function getPoints(document: vscode.TextDocument): Point[] {
           escaped = false;
         }
         if (!inString && char === '/' && line[i + 1] === '/') {
-          commentCharCount += line.length - i;
+          textOfsCount += line.length - i;
           return line.slice(0, i);
         }
       }
@@ -80,7 +84,7 @@ export function getPoints(document: vscode.TextDocument): Point[] {
           else {
             if(node.A.epilog.indexOf('}') !== -1) {
               //log('upward object with } in epilog', node, when, json.length);
-              let pos = document.positionAt(json.length + commentCharCount);
+              let pos = document.positionAt(json.length + textOfsCount);
               pos = utils.movePosToAfterPrevChar(document, pos);
               if(!linesInBlock.includes(node.L.L))
                 points.push({side: 'right', line: pos.line,
@@ -91,7 +95,7 @@ export function getPoints(document: vscode.TextDocument): Point[] {
         }
 
         if(node.T === "member") {
-          let pos = document.positionAt(json.length + commentCharCount);
+          let pos = document.positionAt(json.length + textOfsCount);
           pos = utils.movePosToAfterPrevChar(document, pos);
           if(left) {
             if(!linesInBlock.includes(pos.line)) 

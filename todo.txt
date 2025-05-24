@@ -1,8 +1,6 @@
 bugs ...
-  launch.json chops comment
-  test.json with blank lines on top is missing top margin
-  bookmarks.json has extra top margin
-  
+  bookmarks.json has extra top margin (tabs)
+
 todo ...
 
 unlikely ...
