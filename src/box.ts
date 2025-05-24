@@ -160,13 +160,13 @@ export async function insertNewBox(
         else {
           // comma found, move the point to after the epilog
           const endEpilogPos = utils.movePosToEndOfStr(pointPos, point.epilog);
-          lineNum = endEpilogPos.line;
-          curChar = endEpilogPos.character;
+          lineNum        = endEpilogPos.line;
+          curChar        = endEpilogPos.character;
           const lineText = document.lineAt(lineNum).text;
           textAfter      = lineText.slice(curChar);
           textAfterOfs   = curChar;
-          let startPos = new vscode.Position(lineNum, curChar);
-          const endPos = new vscode.Position(lineNum, lineText.length);
+          let startPos   = new vscode.Position(lineNum, curChar);
+          const endPos   = new vscode.Position(lineNum, lineText.length);
           if(lineText.slice(0, curChar).trim().length == 0) {
             if(lineNum == 0) startPos = new vscode.Position(0, 0);
             else {

@@ -1,9 +1,9 @@
 bugs ...
-  bookmarks.json has extra top margin (tabs)
 
 todo ...
 
 unlikely ...
+  bookmarks.json has extra top margin (tabs)
   moving/resizing with mouse dragging
   don't word wrap inside quoted string
   set editor.unicodeHighlight.invisibleCharacters

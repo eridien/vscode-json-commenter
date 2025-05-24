@@ -11,12 +11,38 @@ export interface Point {
   epilog: string; 
 }
 
+function eraseComments(jsonText: string): string {
+  let inString = false;
+  let escaped  = false;
+  let commIdx  = -1;
+  for(let i = 0; i <= jsonText.length; i++) {
+    if(i == jsonText.length || jsonText[i] === '\n' 
+                            || jsonText[i] === '\r') {
+      if(commIdx != -1) {
+        const comLen = i - commIdx;
+        const spaces = ' '.repeat(comLen);
+        jsonText = jsonText.slice(0, i - comLen) + 
+                            spaces + jsonText.slice(i);
+      }
+      inString = escaped = false; commIdx  = -1;
+      continue;
+    } 
+    if(commIdx != -1) continue;
+    const char = jsonText[i];
+    if (char === '"'  && !escaped) inString = !inString;
+    if (char === '\\' && !escaped) escaped = true;
+    else                           escaped = false;
+    if (!inString && char === '/' && jsonText[i + 1] === '/') 
+      commIdx = i;
+  }
+  return jsonText;
+}
+
 export function getPoints(editor: vscode.TextEditor): Point[] {
   const document     = editor.document;
   const eol          = document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n';
-  const tabSize      = utils.getTabSize(editor);
-  let textOfsCount   = 0;
-  const jsonText     = stripTrailingComments(document.getText(), eol);
+  // const tabSize      = utils.getTabSize(editor);
+  const jsonText     = eraseComments(document.getText());
   const jsonLines    = jsonText.split(/\r?\n/);
   const linesInBlock = [] as number[];
   jsonLines.forEach((line, lineNum) => {
@@ -24,29 +50,6 @@ export function getPoints(editor: vscode.TextEditor): Point[] {
   });
 
   // const docText = document.getText().replaceAll(/\t/g, ' '.repeat(tabSize));
-
-  function stripTrailingComments(text: string, eol: string): string {
-    return text.split(/\r?\n/).map(line => {
-      let inString = false;
-      let escaped = false;
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"' && !escaped) {
-          inString = !inString;
-        }
-        if (char === '\\' && !escaped) {
-          escaped = true;
-        } else {
-          escaped = false;
-        }
-        if (!inString && char === '/' && line[i + 1] === '/') {
-          textOfsCount += line.length - i;
-          return line.slice(0, i);
-        }
-      }
-      return line;
-    }).join(eol);
-  }
 
   let left = true;
   function jsonAstWalk(ast: any): Point[]  {
@@ -60,15 +63,8 @@ export function getPoints(editor: vscode.TextEditor): Point[] {
       ast.walk((node: any, depth: number, parent: any, when: string) => {
         // console.log('node', {node, depth, when});
         let prolog = node.get("prolog");
-        if(firstNode && prolog !== undefined) {
-          const plLines = prolog.split(/\r?\n/);
-          prolog = "";
-          for(let line of plLines) {
-            if(line === ',') prolog += eol;
-            else             prolog += line + eol;
-          }
-          prolog = prolog.slice(0, -eol.length);
-        }
+        if(firstNode && prolog !== undefined) 
+          prolog = prolog.replaceAll(/,/g, '');
         firstNode = false;
         if(depth > lastDepth) left = true;
         if(depth < lastDepth) left = false;
@@ -84,7 +80,7 @@ export function getPoints(editor: vscode.TextEditor): Point[] {
           else {
             if(node.A.epilog.indexOf('}') !== -1) {
               //log('upward object with } in epilog', node, when, json.length);
-              let pos = document.positionAt(json.length + textOfsCount);
+              let pos = document.positionAt(json.length);
               pos = utils.movePosToAfterPrevChar(document, pos);
               if(!linesInBlock.includes(node.L.L))
                 points.push({side: 'right', line: pos.line,
@@ -95,7 +91,7 @@ export function getPoints(editor: vscode.TextEditor): Point[] {
         }
 
         if(node.T === "member") {
-          let pos = document.positionAt(json.length + textOfsCount);
+          let pos = document.positionAt(json.length);
           pos = utils.movePosToAfterPrevChar(document, pos);
           if(left) {
             if(!linesInBlock.includes(pos.line)) 
