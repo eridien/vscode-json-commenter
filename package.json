@@ -53,8 +53,8 @@
         },
         "json-commenter.padding": {
           "type": "number",
-          "default": 2,
-          "description": "Number of spaces padding the sides of the text in the comment block."
+          "default": 1,
+          "description": "Number of spaces padding the sides of the text in the comment block. Value is 0 to 3."
         },
         "json-commenter.minWidth": {
           "type": "number",
@@ -86,13 +86,6 @@
           "enum": ["Above", "Below"],
           "default": "Above",
           "description": "Insert the comment at the first valid position above or below the click."
-        },
-        "json-commenter.editingBackgroundColor": {
-          "type": "string",
-          "format": "color-hex",
-          "scope": "resource",
-          "default": "#ffff99",
-          "description": "Background color used to highlight the comment editing area. Accepts any valid CSS color."
         }
       }
     }

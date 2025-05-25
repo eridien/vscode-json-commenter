@@ -1,6 +1,7 @@
 bugs ...
   undo broken in edit area
-
+  long words don't break
+  
 todo ...
 
 unlikely ...
@@ -8,6 +9,10 @@ unlikely ...
   moving/resizing with mouse dragging
   don't word wrap inside quoted string
   set editor.unicodeHighlight.invisibleCharacters
+
+testing ...
+  settings
+  insert location all test files
 
 npm install -g @vscode/vsce
 vsce package
