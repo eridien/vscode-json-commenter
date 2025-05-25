@@ -277,7 +277,7 @@ function wordWrap(lineText: string, maxLineLen: number): string[] {
       currentLine += (currentLine.length > 0 ? ' ' : '') + word;
     }
   }
-  lines.push(currentLine);
+  if (currentLine.length > 0) lines.push(currentLine);
   return lines;
 }
 

@@ -1,8 +1,7 @@
 bugs ...
   undo broken in edit area
-  long words don't break
   blank lines multiply when cycling between box and edit area
-  comment doesn't finish on tab change or save/reload
+  comment doesn't finish on tab change, save/open, window reload
 
 todo ...
 
