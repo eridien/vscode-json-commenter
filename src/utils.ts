@@ -1,5 +1,5 @@
 import vscode     from 'vscode';
-const { log, start, end } = getLog('util');
+const { log } = getLog('util');
 
 const  zeroWidthChars    =  ['\u200B', '\u200C', '\u200D', '\u2060'];
 export const oneInvChar  = '[' + zeroWidthChars.join('') + ']';
@@ -24,7 +24,6 @@ export function invBase4ToVisStr(str:String) {
   }
   return digitsStr;
 }
-
 
 export function num2inv(num: number): string {
   return zeroWidthChars[num] ?? '?';
@@ -77,27 +76,17 @@ export function invBase4ToNumber(str: string) {
 let lastIdNumber = 0;
 
 export function getIdStr(): string {
-  return  numberToInvBase4(++lastIdNumber, 6);
+  return numberToInvBase4(++lastIdNumber, 6);
 }
 
 export function initIdNumber(document: vscode.TextDocument) {
-  lastIdNumber = 0;
+  lastIdNumber  = 0;
   const docText = document.getText();
   const matches = [...docText.matchAll(idRegEx)];
   for(const match of matches) {
     const num = invBase4ToNumber(match[1]);
     lastIdNumber = Math.max(num, lastIdNumber);
   }
-}
-
-export async function clrDoc(document:vscode.TextDocument) {
-  const fullRange = new vscode.Range(
-    document.positionAt(0),
-    document.positionAt(document.getText().length)
-  );
-  const delEdit = new vscode.WorkspaceEdit();
-  delEdit.delete(document.uri, fullRange);
-  await vscode.workspace.applyEdit(delEdit);
 }
 
 function timeInSecs(ms: number): string {

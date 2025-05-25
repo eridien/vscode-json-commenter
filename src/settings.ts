@@ -1,7 +1,4 @@
-// Returns a DecorationRenderOptions object using the current editingBackgroundColor
 import * as vscode from 'vscode';
-import * as utils     from './utils';
-const { log, start, end } = utils.getLog('sett');
 
 export type InsertPosition = 'Above' | 'Below';
 

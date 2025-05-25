@@ -2,7 +2,7 @@
   "name": "json-commenter",
   "displayName": "JSON commenter",
   "description": "Add inline comments to JSON keeping valid syntax.",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -22,7 +22,7 @@
     "commands": [
       {
         "command": "json-commenter.new",
-        "title": "Open Comment Edit Mode"
+        "title": "Create new comment box."
       }
     ],
     "keybindings": [

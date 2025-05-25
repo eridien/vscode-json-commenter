@@ -1,9 +1,7 @@
 import vscode     from 'vscode';
 import * as box   from './box';
-import * as sett  from './settings';
 import * as utils from './utils';
-import { get } from 'http';
-const { log, start, end } = utils.getLog('edit');
+const { log} = utils.getLog('edit');
 
 const editInitialMsg = 
 `Enter comment.
@@ -122,14 +120,12 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
   let lineNum = lineNumber;
   let blkLine: BlockLine | null;
   do{
-    const line = document.lineAt(--lineNum);
     blkLine = getBlockLine(document, lineNum);
     if(blkLine) blocklines.unshift(blkLine);
   } while(blkLine);
   const startLine = lineNum+1;
   lineNum = lineNumber;
   do{
-    const line = document.lineAt(++lineNum);
     blkLine = getBlockLine(document, lineNum);
     if(blkLine) blocklines.push(blkLine);
   } while(blkLine);
@@ -174,8 +170,8 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
 }
 
 function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
-  const document = editor.document;
-  const docText  = document.getText();
+  const document    = editor.document;
+  const docText     = document.getText();
   const startGroups = startEditTagRegex.exec(docText);
   const endGroups   = endEditTagRegex  .exec(docText);
   if(startGroups === null && endGroups === null) return undefined;
@@ -208,9 +204,9 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
   const editArea: EditArea = {
     editor,
     startLine: startPos.line, startChar:     startPos.character, 
-    startTextLine,            startTextChar: 0, // startTextPos.character, 
+    startTextLine,            startTextChar: 0, 
     endTextLine,              endTextChar:   endTextPos.character, 
-    endLine,                  endChar:       0, //endPos.character,
+    endLine,                  endChar:       0, 
     text:      docText.slice(startTextIdx, endTextIdx),
     hasComma: (utils.inv2num(endGroups![1]) == 1),
   };
@@ -220,7 +216,7 @@ function getEditArea(editor: vscode.TextEditor): EditArea | null | undefined {
 async function startEditing(editor: vscode.TextEditor, block: Block) {
   if (editArea) {
     const editorEditTest = getEditArea(editor);
-    if (editorEditTest === undefined) editArea = null;
+    if(editorEditTest === undefined) editArea = null;
     else {
       log('infoerr', 'JSON Commenter: Existing <comment> edit block found. ' +
                      'Please finish it or delete it.');
@@ -242,7 +238,7 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
   };
   const blockRange = 
             new vscode.Range(block.startLine, 0, block.endLine + 1, 0);
-  let text = '';
+  let text  = '';
   let isNew = true;
   if(block.text === box.blockInitialMsg) text = editInitialMsg;
   else {
@@ -269,7 +265,7 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
   const endTextPos = 
            new vscode.Position(editArea.endTextLine-1,   
                                editStrLines[editStrLines.length-1].length);
-  if (isNew) editor.selection = new vscode.Selection(endTextPos, startTextPos);
+  if (isNew) editor.selection = new vscode.Selection(endTextPos,   startTextPos);
   else       editor.selection = new vscode.Selection(startTextPos, startTextPos);
   log('Editing started.');
 }
@@ -404,8 +400,7 @@ export async function selectionChanged(
   }
 }
 
-export function chgVisibleEditors(
-                       editors: readonly vscode.TextEditor[]) {
+export function chgVisibleEditors() {
   if(editArea) clrDecoration();
 }
 

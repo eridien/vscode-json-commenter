@@ -34,6 +34,6 @@ export default [{
         eqeqeq: "off",
         "no-throw-literal": "warn",
         semi: "warn",
-        "no-unused-vars": "off",
+        "no-unused-vars": "warn",
     },
 }];

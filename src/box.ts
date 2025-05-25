@@ -3,7 +3,7 @@ import * as parse     from './parse';
 import type { Point } from './parse';
 import * as sett      from './settings';
 import * as utils     from './utils';
-const { log, start, end } = utils.getLog('boxx');
+const {log} = utils.getLog('boxx');
 
 const DBG_IDSTR = false; 
 
@@ -34,8 +34,8 @@ export async function drawBox(params: any)  {
         textAfter = '', textAfterOfs = 0, noMgn = false, wsEdit } = params;
   const doApplyEdit = (wsEdit === undefined);
   wsEdit ??= new vscode.WorkspaceEdit();
-  const docUri = document.uri;
-  const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
+  const docUri =  document.uri;
+  const eol    = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   utils.initIdNumber(document);
   const startLinePos = new vscode.Position(startLine, startChar);
   fullWidth = settings.minWidth;
@@ -49,7 +49,7 @@ export async function drawBox(params: any)  {
   }
 
   function drawLine(params: any) {
-    let { isBorder = false, lastLine = false, text = '',
+    let { isBorder  = false, lastLine = false, text = '',
           addComma  = true, noEol = false, hasBreak = false } = params;
     let idStr       = utils.getIdStr();
     let hasBreakStr = utils.num2inv( hasBreak ? 1 : 0);
@@ -97,10 +97,10 @@ export async function drawBox(params: any)  {
     const mgnAbove = adjMargin({ marginLines: settings.marginTop, above: true });
     for (let i = 0; i < mgnAbove+1; i++) insertLine({ });
   }
-  if (settings.headerString) 
+  if(settings.headerString) 
        drawLine({ isBorder: true, lastLine: false, 
                                   text: settings.headerString, addComma: true });
-  if (textLines.length == 0) textLines = [blockInitialMsg];
+  if(textLines.length == 0) textLines = [blockInitialMsg];
   for (let [i, textLine] of textLines.entries()) {
     const lastLine = (i == textLines.length - 1 && !settings.footerString);
     const parts = textLine.split('\x00');
@@ -125,7 +125,6 @@ export async function drawBox(params: any)  {
  
 export async function insertNewBox(
                          document: vscode.TextDocument, point: Point) {
-  const eol = (document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n');
   const docUri     = document.uri;
   let lineNum      = point.line;
   let curChar      = point.character;
@@ -203,7 +202,6 @@ export async function openCommand() {
     log('info', 'No position selected.');
     return;
   }
-
   const points = parse.getPoints(textEditor);
   if (points.length === 0) {
     log('info', 'No object found to place comment in.');
@@ -218,7 +216,7 @@ export async function openCommand() {
 
   for (const point of points) {
     if (point.line > insertPos.line ||
-        (point.line === insertPos.line &&
+       (point.line === insertPos.line &&
           point.character >= insertPos.character)) {
       pointAfterClick = point;
       break;

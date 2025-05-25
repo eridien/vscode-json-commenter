@@ -2,13 +2,12 @@ declare var require: any;
 import vscode from 'vscode';
 const jsonAsty = require('json-asty');
 import * as utils from './utils';
-const { log, start, end } = utils.getLog('pars');
 
 export interface Point {
-  side: string;      
-  line: number;      
+  side:      string;      
+  line:      number;      
   character: number; 
-  epilog: string; 
+  epilog:    string; 
 }
 
 function eraseComments(jsonText: string): string {
@@ -40,7 +39,6 @@ function eraseComments(jsonText: string): string {
 
 export function getPoints(editor: vscode.TextEditor): Point[] {
   const document     = editor.document;
-  const eol          = document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n';
   const jsonText     = eraseComments(document.getText());
   const jsonLines    = jsonText.split(/\r?\n/);
   const linesInBlock = [] as number[];
@@ -57,7 +55,6 @@ export function getPoints(editor: vscode.TextEditor): Point[] {
     let firstNode = true;
     try {
       ast.walk((node: any, depth: number, parent: any, when: string) => {
-        // console.log('node', {node, depth, when});
         let prolog = node.get("prolog");
         if(firstNode && prolog !== undefined) 
           prolog = prolog.replaceAll(/,/g, '');
@@ -71,7 +68,7 @@ export function getPoints(editor: vscode.TextEditor): Point[] {
             // log('Empty object', node, when, json.length);
             if(!linesInBlock.includes(node.L.L))
               points.push({side: 'both', line: node.L.L-1, 
-                           character: node.L.C, epilog:  node.get("epilog")});
+                           character: node.L.C, epilog: node.get("epilog")});
           }
           else {
             if(node.A.epilog.indexOf('}') !== -1) {
