@@ -24,9 +24,6 @@ export function getEditAreaDecorationType(): vscode.TextEditorDecorationType {
   });
 }
 
-const indentStr = ' '.repeat(settings.indent);
-const padStr    = ' '.repeat(settings.padding);
-
 export async function drawBox(params: any)  {
   let fullWidth: number;
   let { document, lineNumber: startLine, curChar: startChar, 
@@ -62,17 +59,17 @@ export async function drawBox(params: any)  {
       paddingStr  = utils.invBase4ToVisStr(paddingStr);
     }
     text = text.replace(/\r\n.*/, '');
-    let linestr = `${indentStr}"${idStr + hasBreakStr + 
-                                 typeStr + paddingStr}":"`;
+    let linestr = `${' '.repeat(settings.indent)}"${idStr +
+                         hasBreakStr + typeStr + paddingStr}":"`;
     if(isBorder) {
       text ||= '-';
       const width = fullWidth + settings.padding * 2;
       linestr    += text.repeat((width / text.length) + 1)
                         .slice(0, width);
     }
-    else linestr += padStr + 
+    else linestr += ' '.repeat(settings.padding) + 
          text.slice(0, fullWidth)
-             .padEnd(fullWidth, ' ') + padStr;
+             .padEnd(fullWidth, ' ') + ' '.repeat(settings.padding);
     return insertLine({lineText: linestr + '"' + 
                       (addComma ? ',' : ''), noEol });
   }

@@ -38,7 +38,7 @@
       "properties": {
         "json-commenter.indent": {
           "type": "number",
-          "default": 4,
+          "default": 2,
           "description": "Number of spaces to the left of the comment block."
         },
         "json-commenter.marginTop": {
