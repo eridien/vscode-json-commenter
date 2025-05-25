@@ -348,7 +348,7 @@ export async function selectionChanged(
                           event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
   const document = editor.document;
-  // if(selections.length == 1 && selections[0].isEmpty) {
+  if(selections.length == 1 && selections[0].isEmpty) {
     const insertPos = selections[0].active;
     if (!insertPos) return;
     const editAreaNew = getEditArea(editor);
@@ -372,5 +372,5 @@ export async function selectionChanged(
       await stopEditing(editor);
       return;
     }
-  // }
+  }
 }
