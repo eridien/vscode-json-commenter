@@ -260,6 +260,16 @@ function wordWrap(lineText: string, maxLineLen: number): string[] {
   }
   const lines: string[] = [];
   for (const word of lineText.split(' ')) {
+    if(word.length > maxLineLen) {
+      if (currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = '';
+      }
+      for (let i = 0; i < word.length; i += maxLineLen) {
+        lines.push(word.slice(i, i + maxLineLen));
+      }
+      continue;
+    }
     if (currentLine.length + word.length > maxLineLen) {
       lines.push(currentLine);
       currentLine = word;
