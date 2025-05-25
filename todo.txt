@@ -1,6 +1,5 @@
 bugs ...
   undo broken in edit area
-  blank lines multiply when cycling between box and edit area
   comment doesn't finish on tab change, save/open, window reload
 
 todo ...

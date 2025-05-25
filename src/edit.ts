@@ -226,11 +226,14 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
   else {
     isNew = false;
     for(const blkLine of block.blocklines) {
-      if(blkLine.border) continue;
-      text += blkLine.text.trimEnd() + '\n' + (blkLine.hasBreak ? '\n' : '');
+      if(!blkLine.border) text += blkLine.text.trimEnd() + '\n';
     }
   }
   text = text.trimEnd();
+
+  console.log(text.length);
+  for(let i=0;i<30;i++) console.log(text[i]);
+
   const editStrLines   = text.split(/\r?\n/);
   editArea.endTextLine = block.startLine + editStrLines.length + 1;
   editArea.endLine     = editArea.endTextLine + 1;
@@ -312,7 +315,10 @@ export async function stopEditing(editor: vscode.TextEditor) {
   text = text.replaceAll(/"/g, box.settings.quoteString); 
   let lines: string[] = [];
   let longLine = '';
-  for(let line of text.split(/\r?\n/)) {
+  const lineSplit = text.split(/\r?\n/);
+  while(lineSplit[lineSplit.length - 1].trim().length == 0)
+    lineSplit.pop();
+  for(let line of lineSplit) {
     line = line.replace(/(?<!^)\s+/g, ' ');
     if(line.length == 0) {
       longLine = longLine.trimEnd() + '\x00';
