@@ -1,6 +1,7 @@
 bugs ...
   undo broken in edit area
   long words don't break
+  blank lines multiply when cycling between box and edit area
   
 todo ...
 

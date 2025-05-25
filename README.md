@@ -10,11 +10,11 @@ JSON Commenter is a vscode extension that lets you create inline comments in a J
 
 - Easy to use. See usage section below.
 
-- The box has minimal surrounding chars which is more attractive than `"comment":"this is a comment",`
+- The box has minimal surrounding characters which is more attractive than `"comment1":"This is a comment",`
 
-![Box](./images/capture.png)
+![Box](./images/appearance.png)
 
-- It is highly customizable. The top and border lines are optional and can be any repeating string like `**~~**`. There can be any number of top margin blank lines and any number of bottom.  The lines will merge with existing blank lines like CSS margins. The padding on the left and right of text can be specified.  The overall indent is specified.  The width is changeable of course.
+- It is highly customizable. The top and border lines are optional and can be any repeating string like `**~~**`. There can be any number of top margin blank lines and any number of bottom.  The lines will merge with existing blank lines like CSS margins. The padding on the left and right of text can be specified.  The horizontal indent position of the box and its width is also an option.
 
 - The comment is inline which means it stays around when the file is closed. If you are in the middle of an edit when the file is closed that is also saved and can be continued when the file is opened.
 
