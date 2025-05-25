@@ -64,24 +64,6 @@ interface EditArea {
 }
 
 let editArea:       EditArea                        | null = null;
-let decorationType: vscode.TextEditorDecorationType | null = null;
-
-export function decorateEditArea() {
-  if (!editArea) return;
-  const ranges: vscode.Range[] = [
-    new vscode.Range(editArea.startTextLine, editArea.startTextChar,
-                     editArea.endTextLine,   editArea.endTextChar)
-  ];
-  decorationType = box.getEditAreaDecorationType();
-  editArea.editor.setDecorations(decorationType, ranges);
-}
-
-function clrDecoration() {
-  if(!editArea || !decorationType) return;
-  editArea.editor.setDecorations(decorationType, []);
-  decorationType.dispose();
-  decorationType = null;
-}
 
 function getBlockLine(document: vscode.TextDocument, 
                       lineNumber: number): BlockLine | null {
@@ -259,7 +241,6 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
                   text                          + eol + 
                   getEndEditTag(block.hasComma) + eol);
   await vscode.workspace.applyEdit(wsEdit);
-  decorateEditArea();
   const startTextPos =
            new vscode.Position(editArea.startTextLine, editArea.startTextChar);
   const endTextPos = 
@@ -302,10 +283,7 @@ export async function stopEditing(editor: vscode.TextEditor) {
     inStopEditing = false;
     return;
   }
-  if(!editor && editArea) {
-    editor = editArea.editor;
-    clrDecoration();
-  }
+  if(!editor && editArea) editor = editArea.editor;
   let stopEditArea: EditArea | null | undefined = getEditArea(editor);
   if(!stopEditArea) {
     inStopEditing = false;
@@ -350,7 +328,6 @@ export async function stopEditing(editor: vscode.TextEditor) {
   await vscode.workspace.applyEdit(wsEdit);
   if(stopEditArea.editor.document.fileName === 
         editArea?.editor.document.fileName) {
-    clrDecoration();
     editArea = null;
   }
   const position = editor?.selection.active;
@@ -371,9 +348,7 @@ export async function selectionChanged(
                           event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
   const document = editor.document;
-  if(selections.length == 1 && selections[0].isEmpty &&
-        kind === vscode.TextEditorSelectionChangeKind.Mouse) {
-    if(editArea) clrDecoration();
+  // if(selections.length == 1 && selections[0].isEmpty) {
     const insertPos = selections[0].active;
     if (!insertPos) return;
     const editAreaNew = getEditArea(editor);
@@ -397,13 +372,5 @@ export async function selectionChanged(
       await stopEditing(editor);
       return;
     }
-  }
-}
-
-export function chgVisibleEditors() {
-  if(editArea) clrDecoration();
-}
-
-export function docContentChanged() {
-  if(editArea) clrDecoration();
+  // }
 }

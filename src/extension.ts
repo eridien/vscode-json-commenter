@@ -16,16 +16,10 @@ export function activate(context: vscode.ExtensionContext) {
     await edit.selectionChanged(event);
   });
 
-  const visibleEditorsDisposable = 
-        vscode.window.onDidChangeVisibleTextEditors(() => {
-    edit.chgVisibleEditors();
-  });
-
   const activeEditorDisposable = 
              vscode.window.onDidChangeActiveTextEditor(async editor => {
     if(editor) await edit.stopEditing(editor);
   });
-
 
   const settingsDisposable = 
         vscode.workspace.onDidChangeConfiguration(event => {
@@ -34,15 +28,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  const docContentChangeDisposable = vscode.workspace
-                      .onDidChangeTextDocument(() => {
-    edit.docContentChanged();
-  });
-
   context.subscriptions.push( registerCommand, settingsDisposable, 
-                              selectionDisposable,docContentChangeDisposable, 
-                              visibleEditorsDisposable,
-                              activeEditorDisposable );
+                              selectionDisposable, activeEditorDisposable );
 }
 
 export function deactivate() {}
