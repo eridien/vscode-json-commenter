@@ -120,13 +120,13 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
   let lineNum = lineNumber;
   let blkLine: BlockLine | null;
   do{
-    blkLine = getBlockLine(document, lineNum);
+    blkLine = getBlockLine(document, --lineNum);
     if(blkLine) blocklines.unshift(blkLine);
   } while(blkLine);
   const startLine = lineNum+1;
   lineNum = lineNumber;
   do{
-    blkLine = getBlockLine(document, lineNum);
+    blkLine = getBlockLine(document, ++lineNum);
     if(blkLine) blocklines.push(blkLine);
   } while(blkLine);
   const endLine = lineNum-1;
