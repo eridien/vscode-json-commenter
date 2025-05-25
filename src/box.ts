@@ -15,15 +15,6 @@ export function refreshSettings() {
   settings = sett.getJsonCommenterSettings();
 }
 
-export function getEditAreaDecorationType(): vscode.TextEditorDecorationType {
-  return vscode.window.createTextEditorDecorationType({
-    backgroundColor: settings.editingBackgroundColor,
-    borderRadius: '2px',
-    border: '1px solid #cccccc',
-    isWholeLine: false,
-  });
-}
-
 export async function drawBox(params: any)  {
   let fullWidth: number;
   let { document, lineNumber: startLine, curChar: startChar, 

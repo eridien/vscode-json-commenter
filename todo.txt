@@ -2,7 +2,8 @@ bugs ...
   undo broken in edit area
   long words don't break
   blank lines multiply when cycling between box and edit area
-  
+  comment doesn't finish on tab change or save/reload
+
 todo ...
 
 unlikely ...
@@ -12,8 +13,23 @@ unlikely ...
   set editor.unicodeHighlight.invisibleCharacters
 
 testing ...
-  settings
+  settings changes
   insert location all test files
+  comment and edit area text when cycling between them
+  break blank lines
+  click by edges of box and edit area
+  undo on comment and edit areas
+  quotes in text
+  // comments in file
+  word wrap
+  comment finishes on tab change or save/reload
+  check errors
+     json parse
+     <comment> </comment> tags missing
+     </comment> is before <comment>
+      <comment> tag is missing
+      Existing <comment> edit block
+  wide and long text and words
 
 npm install -g @vscode/vsce
 vsce package

@@ -14,7 +14,7 @@ JSON Commenter is a vscode extension that lets you create inline comments in a J
 
 ![Box](./images/appearance.png)
 
-- It is highly customizable. The top and border lines are optional and can be any repeating string like `**~~**`. There can be any number of top margin blank lines and any number of bottom.  The lines will merge with existing blank lines like CSS margins. The padding on the left and right of text can be specified.  The horizontal indent position of the box and its width is also an option.
+- It is highly customizable. The top and border lines are optional and can be any repeating string like `**~~**`. There can be any number of top margin blank lines and any number of bottom.  The lines will merge with existing blank lines like CSS margins. The padding on the left and right of text can be specified.  The horizontal indent position of the box and its width are also options.
 
 - The comment is inline which means it stays around when the file is closed. If you are in the middle of an edit when the file is closed that is also saved and can be continued when the file is opened.
 
@@ -36,7 +36,7 @@ The other usage case is adding instructions to a config file for your own app.  
 
 ### How does it work?
 
-You might have noticed the property key values are empty. This violates the rule of no duplicate keys.  But they aren't actually empty.  There are zero-width invisible characters for id numbers.  This not only guarantees no comment line duplicates but guarantees no duplicates with other normal keys.
+You might have noticed the property key values are empty. This violates the rule of no duplicate keys.  But they aren't actually empty.  There are zero-width invisible characters for id numbers.  This not only guarantees no comment line duplicates but also guarantees no duplicates with other normal keys.
 
 The other tricky thing was finding legal points to insert comments. A full AST parser is used for that.
 
