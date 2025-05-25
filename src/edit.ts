@@ -375,6 +375,9 @@ export async function selectionChanged(
                           event:vscode.TextEditorSelectionChangeEvent) {
   const {textEditor:editor, selections, kind} = event;
   const document = editor.document;
+
+  log(utils.parseJsonWithComments(document.getText()));
+
   if(selections.length == 1 && selections[0].isEmpty &&
         kind === vscode.TextEditorSelectionChangeKind.Mouse) {
     if(editArea) clrDecoration();
