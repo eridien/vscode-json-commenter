@@ -1,6 +1,5 @@
 bugs ...
   
-
 todo ...
 
 unlikely ...
@@ -8,15 +7,6 @@ unlikely ...
   moving/resizing with mouse dragging
   don't word wrap inside quoted string
   set editor.unicodeHighlight.invisibleCharacters
-
-works in ...
-  package.json
-  package-lock.json
-  .vscode/launch.json
-
-doesn't work in ...
-  bookmarks.json, comments cleared on reboot
-  .vscode/settings.json   comments give invalid json
 
 npm install -g @vscode/vsce
 vsce package
