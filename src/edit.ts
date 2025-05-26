@@ -254,7 +254,6 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
                                editStrLines[editStrLines.length-1].length);
   if (isNew) editor.selection = new vscode.Selection(endTextPos,   startTextPos);
   else       editor.selection = new vscode.Selection(startTextPos, startTextPos);
-  log('Editing started.');
 }
 
 function wordWrap(lineText: string, maxLineLen: number): string[] {

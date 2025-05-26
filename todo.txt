@@ -32,8 +32,7 @@ release checks ...
   version
   search todo
   search logs
-    log\(\s*'[^']*(err|info)[^']*'
-    log\(\s*'(?!err|info)[^']*'
+    log('
     console.log
     debug
     dbg
