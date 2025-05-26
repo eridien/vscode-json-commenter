@@ -362,7 +362,9 @@ function inEditArea(pos:vscode.Position): boolean {
 
 export async function selectionChanged( 
                           event:vscode.TextEditorSelectionChangeEvent) {
-  const {textEditor:editor, selections} = event;
+  const {textEditor:editor, selections, kind} = event;
+  if(kind !== vscode.TextEditorSelectionChangeKind.Keyboard &&
+     kind !== vscode.TextEditorSelectionChangeKind.Mouse) return;
   const document = editor.document;
   if(selections.length == 1 && selections[0].isEmpty) {
     const insertPos = selections[0].active;
