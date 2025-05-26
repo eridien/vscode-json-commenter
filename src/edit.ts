@@ -152,7 +152,6 @@ function getBlock(document: vscode.TextDocument, lineNumber: number): Block | nu
     }
   }
   text = text.trim();
-  log(text.replace(/\n+/g, '#'));
   return { document, startLine, startTextLine, endTextLine, endLine,
            startPadChar, startTextChar, endTextChar, endPadChar, padLen, text,
            hasTopBorder, hasBottomBorder, hasComma, eol, blocklines };
