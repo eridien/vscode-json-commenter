@@ -4,7 +4,7 @@
 
 JSON Commenter is a vscode extension that lets you create inline comments in a JSON file while keeping valid syntax. The text is edited inline and supports word wrap, padding, margins, etc. 
 
-![Intro Gif](./images/intro.gif)
+![Intro Gif](images/intro.gif)
 
 ### Features
 
@@ -12,7 +12,7 @@ JSON Commenter is a vscode extension that lets you create inline comments in a J
 
 - The box has minimal surrounding characters which is more attractive than `"comment1":"This is a comment",`
 
-![Box](./images/appearance.png)
+![Box](images/appearance.png)
 
 - It is highly customizable. The top and border lines are optional and can be any repeating string like `**~~**`. There can be any number of top margin blank lines and any number of bottom.  The lines will merge with existing blank lines like CSS margins. The padding on the left and right of text can be specified.  The horizontal indent position of the box and its width are also options.
 
