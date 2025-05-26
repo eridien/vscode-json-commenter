@@ -30,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push( registerCommand, settingsDisposable, 
                               selectionDisposable, activeEditorDisposable );
+  edit.init();
 }
 
 export function deactivate() {}

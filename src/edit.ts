@@ -63,7 +63,14 @@ interface EditArea {
   hasComma:       boolean;
 }
 
-let editArea:       EditArea                        | null = null;
+export function init() {
+  setTimeout(async() => {
+    const editor = vscode.window.activeTextEditor;
+    if(editor) await stopEditing(editor);
+  }, 10);
+}
+
+let editArea: EditArea | null = null;
 
 function getBlockLine(document: vscode.TextDocument, 
                       lineNumber: number): BlockLine | null {
