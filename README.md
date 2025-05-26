@@ -1,4 +1,4 @@
-<h1><img src="./images/eridien.png" alt="eridien" style="vertical-align:top; width:48px; margin-right:8px;"> JSON Commenter</h1>
+## JSON Commenter
 
 ### Overview
 
