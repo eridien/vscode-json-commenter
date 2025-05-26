@@ -41,3 +41,4 @@ release checks ...
 
 npm install -g @vscode/vsce
 vsce package
+https://marketplace.visualstudio.com/manage/publishers/
