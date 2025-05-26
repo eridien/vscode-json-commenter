@@ -237,10 +237,6 @@ async function startEditing(editor: vscode.TextEditor, block: Block) {
     }
   }
   text = text.trimEnd();
-
-  console.log(text.length);
-  for(let i=0;i<30;i++) console.log(text[i]);
-
   const editStrLines   = text.split(/\r?\n/);
   editArea.endTextLine = block.startLine + editStrLines.length + 1;
   editArea.endLine     = editArea.endTextLine + 1;

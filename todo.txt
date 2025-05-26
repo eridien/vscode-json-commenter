@@ -1,5 +1,5 @@
 bugs ...
-
+  
 todo ...
 
 unlikely to do ...
@@ -27,6 +27,18 @@ testing ...
       <comment> tag is missing
       Existing <comment> edit block
   wide and long text and words
+
+release checks ...
+  version
+  search todo
+  search logs
+    log\(\s*'[^']*(err|info)[^']*'
+    log\(\s*'(?!err|info)[^']*'
+    console.log
+    debug
+    dbg
+    check problems
+    run and check console
 
 npm install -g @vscode/vsce
 vsce package
